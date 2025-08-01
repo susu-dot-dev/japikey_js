@@ -1,0 +1,25 @@
+{
+  "name": "japikey",
+  "version": "0.1.0",
+  "description": "Library to create API keys powered by JWT and JWKS",
+  "keywords": [
+    "apikey",
+    "jwt",
+    "jwks"
+  ],
+  "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
+  "bugs": {
+    "url": "https://github.com/susu-dot-dev/japikey_js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susu-dot-dev/japikey_js.git"
+  },
+  "license": "MIT",
+  "author": "Anil Kulkarni",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "jest"
+  }
+}
