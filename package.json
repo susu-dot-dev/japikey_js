@@ -20,11 +20,12 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "vitest",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc"
   },
   "devDependencies": {
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "vitest": "^3.2.4"
   }
 }
