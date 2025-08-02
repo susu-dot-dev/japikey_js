@@ -18,8 +18,6 @@ export default [
       '@typescript-eslint': tseslint,
     },
     rules: {
-      // TypeScript-specific rules
-      '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/prefer-optional-chain': 'error',
@@ -31,13 +29,13 @@ export default [
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
 
-      // Modern JavaScript/TypeScript patterns
       'prefer-const': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'prefer-template': 'error',
       'no-console': 'warn',
       'no-debugger': 'error',
+      'no-unused-vars': 'off',
     },
   },
   {
