@@ -1,1 +1,1 @@
-export * from './example.ts';
+export * from './errors.ts';
