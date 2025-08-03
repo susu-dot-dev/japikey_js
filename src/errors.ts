@@ -11,15 +11,11 @@ export enum errorType {
 export class JapikeyError extends Error {
   constructor(
     public code: StatusCode,
-    public data: Record<string, unknown> & { type: errorType },
+    public errorType: errorType,
     message?: string,
     options?: ErrorOptions
   ) {
     super(message, options);
-  }
-
-  body(): string {
-    return JSON.stringify(this.data);
   }
 }
 
@@ -31,12 +27,8 @@ export class JapikeyError extends Error {
  * which is otherwise uncaught.
  */
 export class UnexpectedError extends JapikeyError {
-  constructor(
-    data: Record<string, unknown> & { type: errorType },
-    message: string,
-    options?: ErrorOptions
-  ) {
-    super(500, data, message, options);
+  constructor(message: string, type: errorType, options?: ErrorOptions) {
+    super(500, type, message, options);
   }
 }
 
@@ -46,13 +38,13 @@ export class UnexpectedError extends JapikeyError {
  */
 export class UnknownError extends JapikeyError {
   constructor(message: string, options?: ErrorOptions) {
-    super(500, { type: errorType.UNKNOWN }, message, options);
+    super(500, errorType.UNKNOWN, message, options);
   }
 }
 
 export class InvalidInputError extends JapikeyError {
   constructor(message: string, options?: ErrorOptions) {
-    super(400, { type: errorType.INVALID_INPUT }, message, options);
+    super(400, errorType.INVALID_INPUT, message, options);
   }
 }
 
@@ -61,12 +53,12 @@ export class InvalidInputError extends JapikeyError {
  */
 export class SigningError extends UnexpectedError {
   constructor(message: string, options?: ErrorOptions) {
-    super({ type: errorType.SIGNING_ERROR }, message, options);
+    super(message, errorType.SIGNING_ERROR, options);
   }
 }
 
 export class IncorrectUsageError extends UnexpectedError {
   constructor(message: string, options?: ErrorOptions) {
-    super({ type: errorType.INCORRECT_USAGE }, message, options);
+    super(message, errorType.INCORRECT_USAGE, options);
   }
 }
