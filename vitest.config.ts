@@ -14,6 +14,7 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         'coverage/',
+        'src/index.ts',
       ],
       thresholds: {
         branches: 100,

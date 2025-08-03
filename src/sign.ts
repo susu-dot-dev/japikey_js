@@ -31,12 +31,18 @@ async function generateKeyPair(
   }
 }
 
-function getIssuer(kid: string, issuer: URL): string {
-  try {
-    return new URL(kid, issuer).toString();
-  } catch (err) {
-    throw new IncorrectUsageError('Invalid issuer', { cause: err });
+function getExpiresAt(expiresAt: Date): number {
+  if (expiresAt.getTime() < 0) {
+    throw new IncorrectUsageError('expiresAt must be in the future');
   }
+  return Math.floor(expiresAt.getTime() / 1000);
+}
+
+function getSub(options: CreateApiKeyOptions): string {
+  if (!options.sub) {
+    throw new IncorrectUsageError('sub must be a non-empty string');
+  }
+  return options.sub;
 }
 
 async function signJWT(
@@ -77,9 +83,10 @@ export async function createApiKey(
   try {
     const kid = uuidv7();
     const alg = 'RS256';
-    const exp = Math.floor(options.expiresAt.getTime() / 1000);
-    const iss = getIssuer(kid, options.iss);
-    const { sub, aud } = options;
+    const exp = getExpiresAt(options.expiresAt);
+    const iss = new URL(kid, options.iss).toString();
+    const sub = getSub(options);
+    const aud = options.aud;
     const { publicKey, privateKey } = await generateKeyPair(alg);
     const jwks = await generateJWKS(publicKey, kid);
 
@@ -93,7 +100,7 @@ export async function createApiKey(
     );
     return { jwks, jwt };
   } catch (err) {
-    if (!(err instanceof JapikeyError)) {
+    if (err instanceof JapikeyError) {
       throw err;
     }
     throw new UnknownError('Failed to create API key', { cause: err });
