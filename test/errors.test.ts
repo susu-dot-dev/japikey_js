@@ -3,9 +3,10 @@ import {
   errorType,
   UnknownError,
   JapikeyError,
-  InvalidInputError,
   IncorrectUsageError,
   SigningError,
+  MalformedTokenError,
+  UnauthorizedError,
 } from '../src/errors';
 describe('Errors', () => {
   const sampleData = { hello: 'world', meaning: 42 };
@@ -17,14 +18,19 @@ describe('Errors', () => {
       errorType: errorType.INCORRECT_USAGE,
     },
     {
-      err: new InvalidInputError('test'),
-      code: 400,
-      errorType: errorType.INVALID_INPUT,
-    },
-    {
       err: new SigningError('test'),
       code: 500,
       errorType: errorType.SIGNING_ERROR,
+    },
+    {
+      err: new MalformedTokenError('test'),
+      code: 401,
+      errorType: errorType.MALFORMED_TOKEN,
+    },
+    {
+      err: new UnauthorizedError('test'),
+      code: 403,
+      errorType: errorType.UNAUTHORIZED,
     },
   ];
   test.each(tests)(

@@ -4,8 +4,9 @@ type StatusCode = keyof typeof STATUS_CODES;
 export enum errorType {
   UNKNOWN = 'unknown',
   INCORRECT_USAGE = 'incorrect_usage',
-  INVALID_INPUT = 'invalid_input',
   SIGNING_ERROR = 'signing_error',
+  MALFORMED_TOKEN = 'malformed_token',
+  UNAUTHORIZED = 'unauthorized',
 }
 
 export class JapikeyError extends Error {
@@ -16,6 +17,33 @@ export class JapikeyError extends Error {
     options?: ErrorOptions
   ) {
     super(message, options);
+  }
+}
+
+/**
+ * When authenticating a token, any initial validation error for parsing
+ * becomes a 401- MalformedTokenError.
+ * This includes things like: missing token, not a JWT, missing kid etc
+ * Once the token is verified, other errors become 403-level errors
+ */
+export class MalformedTokenError extends JapikeyError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(
+      401,
+      errorType.MALFORMED_TOKEN,
+      'The token is missing or not in the correct format',
+      options
+    );
+  }
+}
+
+/**
+ * When authenticating a token, if the token can be parsed, but access is not granted,
+ * a 403 Unauthorized error is thrown
+ */
+export class UnauthorizedError extends JapikeyError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(403, errorType.UNAUTHORIZED, message, options);
   }
 }
 
@@ -39,12 +67,6 @@ export class UnexpectedError extends JapikeyError {
 export class UnknownError extends JapikeyError {
   constructor(message: string, options?: ErrorOptions) {
     super(500, errorType.UNKNOWN, message, options);
-  }
-}
-
-export class InvalidInputError extends JapikeyError {
-  constructor(message: string, options?: ErrorOptions) {
-    super(400, errorType.INVALID_INPUT, message, options);
   }
 }
 
