@@ -2,6 +2,9 @@
   "name": "japikey",
   "version": "0.1.0",
   "description": "Library to create API keys powered by JWT and JWKS",
+  "engines": {
+    "node": ">=19.0.0"
+  },
   "keywords": [
     "apikey",
     "jwt",
