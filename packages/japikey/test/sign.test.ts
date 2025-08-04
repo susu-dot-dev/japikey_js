@@ -1,30 +1,13 @@
 import { describe, test, expect, Mock } from 'vitest';
 import * as jose from 'jose';
-import { createApiKey, CreateApiKeyOptions } from '../src/sign.ts';
+import { createApiKey } from '../src/sign.ts';
 import { VER, ALG } from '@japikey/shared';
 import {
   IncorrectUsageError,
   SigningError,
   UnknownError,
 } from '@japikey/shared';
-
-const iat = Date.now() - 100;
-export const baseIssuer = new URL('https://example.com');
-export function userClaims() {
-  return {
-    scopes: ['read', 'write'],
-    iat: Math.floor(iat / 1000),
-  };
-}
-
-export function apiKeyOptions(): CreateApiKeyOptions {
-  return {
-    sub: 'my-user',
-    iss: baseIssuer,
-    aud: 'api-key',
-    expiresAt: new Date(iat + 1000 * 60 * 60 * 24), // 1 day from now
-  };
-}
+import { iat, apiKeyOptions, userClaims } from './testHelpers.ts';
 
 describe('createApiKey', () => {
   test('create a valid API key', async () => {
