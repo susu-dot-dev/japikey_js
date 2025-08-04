@@ -7,6 +7,8 @@ export enum errorType {
   SIGNING_ERROR = 'signing_error',
   MALFORMED_TOKEN = 'malformed_token',
   UNAUTHORIZED = 'unauthorized',
+  INVALID_INPUT = 'invalid_input',
+  DATABASE_ERROR = 'database_error',
 }
 
 export class JapikeyError extends Error {
@@ -17,6 +19,15 @@ export class JapikeyError extends Error {
     options?: ErrorOptions
   ) {
     super(message, options);
+  }
+}
+
+/**
+ * Used whenever the input passed in from the user is invalid
+ */
+export class InvalidInputError extends JapikeyError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(400, errorType.INVALID_INPUT, message, options);
   }
 }
 
@@ -82,5 +93,11 @@ export class SigningError extends UnexpectedError {
 export class IncorrectUsageError extends UnexpectedError {
   constructor(message: string, options?: ErrorOptions) {
     super(message, errorType.INCORRECT_USAGE, options);
+  }
+}
+
+export class DatabaseError extends UnexpectedError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, errorType.DATABASE_ERROR, options);
   }
 }
