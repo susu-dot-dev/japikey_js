@@ -1,14 +1,14 @@
 {
-  "name": "@japikey/japikey",
+  "name": "@japikey/authenticate",
   "version": "0.1.0",
-  "description": "Library to create API keys powered by JWT and JWKS",
+  "description": "Authentication utilities for JAPIKey",
   "engines": {
     "node": ">=22.5.0"
   },
   "keywords": [
-    "apikey",
-    "jwt",
-    "jwks"
+    "authentication",
+    "auth",
+    "japikey"
   ],
   "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
   "bugs": {
@@ -53,9 +53,5 @@
     "rimraf": "^6.0.1",
     "vitest": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4"
-  },
-  "dependencies": {
-    "jose": "^6.0.12",
-    "uuid": "^11.1.0"
   }
 }
