@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
@@ -23,6 +24,11 @@ export default defineConfig({
         lines: 100,
         statements: 100,
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '@japikey/shared': resolve(__dirname, '../shared/src/index.ts'),
     },
   },
 });

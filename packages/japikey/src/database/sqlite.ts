@@ -4,7 +4,7 @@ import {
   IncorrectUsageError,
   InvalidInputError,
   DatabaseError,
-} from '../errors.ts';
+} from '@japikey/shared';
 import type { StatementSync, SQLInputValue, SQLOutputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
 

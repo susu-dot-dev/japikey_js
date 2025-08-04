@@ -1,5 +1,3 @@
-import { URL } from 'node:url';
-
 export function appendPathToUrl(base: URL, path: string): URL {
   if (!path) {
     return base;

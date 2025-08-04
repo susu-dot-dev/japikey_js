@@ -1,6 +1,4 @@
-import type { STATUS_CODES } from 'http';
-
-type StatusCode = keyof typeof STATUS_CODES;
+type StatusCode = 200 | 400 | 401 | 403 | 500;
 export enum errorType {
   UNKNOWN = 'unknown',
   INCORRECT_USAGE = 'incorrect_usage',

@@ -7,9 +7,10 @@ import {
   authenticate,
   type GetJWKS,
 } from '../src/authenticate.ts';
-import { ALG, createApiKey } from '../src/sign.ts';
+import { createApiKey } from '../src/sign.ts';
+import { ALG } from '@japikey/shared';
 import { apiKeyOptions, userClaims, baseIssuer } from './sign.test.ts';
-import { MalformedTokenError, UnauthorizedError } from '../src/errors.ts';
+import { MalformedTokenError, UnauthorizedError } from '@japikey/shared';
 
 describe('shouldAuthenticate', () => {
   test('valid token', async () => {
