@@ -6,10 +6,14 @@ import {
   createGetJWKS,
   authenticate,
   type GetJWKS,
-} from '../src/authenticate.ts';
-import { createApiKey } from '../src/sign.ts';
+} from '../src/index.ts';
 import { ALG } from '@japikey/shared';
-import { apiKeyOptions, userClaims, baseIssuer } from './sign.test.ts';
+import { createApiKey } from '../../japikey/src/sign.ts';
+import {
+  apiKeyOptions,
+  userClaims,
+  baseIssuer,
+} from '../../japikey/test/testHelpers.ts';
 import { MalformedTokenError, UnauthorizedError } from '@japikey/shared';
 
 describe('shouldAuthenticate', () => {

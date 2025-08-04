@@ -13,7 +13,7 @@ import type { DatabaseOperations } from '../src/database/interface.ts';
 import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from '../src/database/interface.ts';
 import SqliteDriver from '../src/database/sqlite.ts';
 import { createApiKey } from '../src/sign.ts';
-import { apiKeyOptions, userClaims } from './sign.test.ts';
+import { apiKeyOptions, userClaims } from './testHelpers.ts';
 import type { ApiKeyRow } from '../src/database/interface.ts';
 import {
   DatabaseError,
