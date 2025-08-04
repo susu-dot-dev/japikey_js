@@ -1,45 +1,27 @@
-import { describe, test, expect, vi, Mock, beforeEach } from 'vitest';
+import { describe, test, expect, Mock } from 'vitest';
 import * as jose from 'jose';
-import { createApiKey, CreateApiKeyOptions } from '../src/sign';
+import { createApiKey, CreateApiKeyOptions, VER, ALG } from '../src/sign';
 import { IncorrectUsageError, SigningError, UnknownError } from '../src/errors';
 
-vi.mock('jose', async () => {
-  const actual: typeof jose = await vi.importActual('jose');
+const iat = Date.now() - 100;
+export const baseIssuer = new URL('https://example.com');
+export function userClaims() {
   return {
-    ...actual,
-    generateKeyPair: vi.fn(),
-    exportJWK: vi.fn(),
-    SignJWT: vi.fn(),
+    scopes: ['read', 'write'],
+    iat: Math.floor(iat / 1000),
   };
-});
+}
+
+export function apiKeyOptions(): CreateApiKeyOptions {
+  return {
+    sub: 'my-user',
+    iss: baseIssuer,
+    aud: 'api-key',
+    expiresAt: new Date(iat + 1000 * 60 * 60 * 24), // 1 day from now
+  };
+}
 
 describe('createApiKey', () => {
-  const iat = Date.now() - 100;
-  function userClaims() {
-    return {
-      scopes: ['read', 'write'],
-      iat: Math.floor(iat / 1000),
-    };
-  }
-
-  function apiKeyOptions(): CreateApiKeyOptions {
-    return {
-      sub: 'my-user',
-      iss: new URL('https://example.com'),
-      aud: 'api-key',
-      expiresAt: new Date(iat + 1000 * 60 * 60 * 24), // 1 day from now
-    };
-  }
-
-  beforeEach(async () => {
-    const actual: typeof jose = await vi.importActual('jose');
-    (jose.generateKeyPair as Mock).mockImplementation(actual.generateKeyPair);
-    (jose.exportJWK as Mock).mockImplementation(actual.exportJWK);
-    (jose.SignJWT as Mock).mockImplementation((payload: jose.JWTPayload) => {
-      return new actual.SignJWT(payload);
-    });
-  });
-
   test('create a valid API key', async () => {
     const expiresAt = new Date(iat + 1000 * 60 * 60 * 24); // 1 day from now
     const promise = createApiKey(userClaims(), apiKeyOptions());
@@ -58,9 +40,10 @@ describe('createApiKey', () => {
       exp: Math.floor(expiresAt.getTime() / 1000),
       iat: expect.any(Number),
       scopes: ['read', 'write'],
+      ver: VER,
     };
     expect(payload).toEqual(expected);
-    expect(protectedHeader.alg).toBe('RS256');
+    expect(protectedHeader.alg).toBe(ALG);
     expect(protectedHeader.kid).toBe(jwks.keys[0].kid);
   });
 

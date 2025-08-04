@@ -1,12 +1,13 @@
 import * as jose from 'jose';
 import { v7 as uuidv7 } from 'uuid';
-import { URL } from 'node:url';
+import type { URL } from 'node:url';
 import {
   JapikeyError,
   IncorrectUsageError,
   SigningError,
   UnknownError,
 } from './errors.ts';
+import { appendPathToUrl } from './util.ts';
 
 export type CreateApiKeyOptions = {
   sub: string;
@@ -19,6 +20,11 @@ export type CreateApiKeyResult = {
   jwks: jose.JSONWebKeySet;
   jwt: string;
 };
+
+export const ALG = 'RS256';
+export const VER_PREFIX = 'japikey-v';
+export const VER_NUM = 1;
+export const VER = `${VER_PREFIX}${VER_NUM}`;
 
 async function generateKeyPair(
   alg: string
@@ -82,20 +88,19 @@ export async function createApiKey(
 ): Promise<CreateApiKeyResult> {
   try {
     const kid = uuidv7();
-    const alg = 'RS256';
     const exp = getExpiresAt(options.expiresAt);
-    const iss = new URL(kid, options.iss).toString();
+    const iss = appendPathToUrl(options.iss, kid).toString();
     const sub = getSub(options);
     const aud = options.aud;
-    const { publicKey, privateKey } = await generateKeyPair(alg);
+    const { publicKey, privateKey } = await generateKeyPair(ALG);
     const jwks = await generateJWKS(publicKey, kid);
 
     const overrides: jose.JWTPayload = { sub, iss, aud, exp };
 
     const jwt = await signJWT(
-      { ...claims, ...overrides },
+      { ...claims, ...overrides, ver: VER },
       privateKey,
-      alg,
+      ALG,
       kid
     );
     return { jwks, jwt };
