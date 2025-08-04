@@ -7,6 +7,8 @@ import {
   SigningError,
   MalformedTokenError,
   UnauthorizedError,
+  InvalidInputError,
+  DatabaseError,
 } from '../src/errors';
 describe('Errors', () => {
   const sampleData = { hello: 'world', meaning: 42 };
@@ -31,6 +33,16 @@ describe('Errors', () => {
       err: new UnauthorizedError('test'),
       code: 403,
       errorType: errorType.UNAUTHORIZED,
+    },
+    {
+      err: new InvalidInputError('test'),
+      code: 400,
+      errorType: errorType.INVALID_INPUT,
+    },
+    {
+      err: new DatabaseError('test'),
+      code: 500,
+      errorType: errorType.DATABASE_ERROR,
     },
   ];
   test.each(tests)(

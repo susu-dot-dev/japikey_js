@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Library to create API keys powered by JWT and JWKS",
   "engines": {
-    "node": ">=19.0.0"
+    "node": ">=22.5.0"
   },
   "keywords": [
     "apikey",
@@ -24,8 +24,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "test": "vitest",
+    "test:ci": "CI=1 vitest --run",
     "test:coverage": "vitest --coverage",
-    "test:coverage:ci": "vitest --coverage --run",
+    "test:coverage:ci": "CI=1 vitest --coverage --run",
     "coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
