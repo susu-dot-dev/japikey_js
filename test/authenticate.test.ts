@@ -83,22 +83,22 @@ describe('shouldAuthenticate', () => {
 describe('createGetJWKS', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
   let jwt: string;
-  let jwks: jose.JSONWebKeySet;
+  let jwk: jose.JWK;
   let kid: string;
   let iss: string;
   beforeEach(async () => {
     mockFetch = vi.fn();
     const result = await createApiKey(userClaims(), apiKeyOptions());
     jwt = result.jwt;
-    jwks = result.jwks;
-    kid = jwks.keys[0].kid!;
+    jwk = result.jwk;
+    kid = jwk.kid!;
     const unverified = jose.decodeJwt(jwt);
     iss = unverified.iss!;
     mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
-      json: () => Promise.resolve(jwks),
+      json: () => Promise.resolve({ keys: [jwk] }),
     });
   });
 
@@ -130,13 +130,13 @@ describe('createGetJWKS', () => {
 
 describe('authenticate', () => {
   test('valid token', async () => {
-    const { jwt, jwks } = await createApiKey(userClaims(), apiKeyOptions());
+    const { jwt, jwk } = await createApiKey(userClaims(), apiKeyOptions());
     const getJWKS: GetJWKS = ({ kid }) => {
       return async () => {
-        if (kid !== jwks.keys[0].kid) {
+        if (kid !== jwk.kid) {
           throw new Error('Invalid kid');
         }
-        return jwks.keys[0];
+        return jwk;
       };
     };
     const promise = authenticate(jwt, { getJWKS, baseIssuer });

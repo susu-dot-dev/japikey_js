@@ -26,8 +26,11 @@ describe('createApiKey', () => {
     const expiresAt = new Date(iat + 1000 * 60 * 60 * 24); // 1 day from now
     const promise = createApiKey(userClaims(), apiKeyOptions());
     await expect(promise).resolves.toBeDefined();
-    const { jwks, jwt } = await promise;
-    const decodePromise = jose.jwtVerify(jwt, jose.createLocalJWKSet(jwks));
+    const { jwk, jwt } = await promise;
+    const decodePromise = jose.jwtVerify(
+      jwt,
+      jose.createLocalJWKSet({ keys: [jwk] })
+    );
     await expect(decodePromise).resolves.toBeDefined();
     const { payload, protectedHeader } = await decodePromise;
     const kid = protectedHeader.kid;
@@ -44,7 +47,7 @@ describe('createApiKey', () => {
     };
     expect(payload).toEqual(expected);
     expect(protectedHeader.alg).toBe(ALG);
-    expect(protectedHeader.kid).toBe(jwks.keys[0].kid);
+    expect(protectedHeader.kid).toBe(jwk.kid);
   });
 
   const expiresTests: { input: number; expected: number }[] = [
@@ -125,7 +128,7 @@ describe('createApiKey', () => {
     await expect(promise).rejects.toThrow(SigningError);
   });
 
-  test('generateJWKS errors are wrapped', async () => {
+  test('generateJWK errors are wrapped', async () => {
     (jose.exportJWK as Mock).mockImplementation(() => {
       throw new Error('exportJWK mock error');
     });

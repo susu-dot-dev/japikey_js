@@ -17,7 +17,7 @@ export type CreateApiKeyOptions = {
 };
 
 export type CreateApiKeyResult = {
-  jwks: jose.JSONWebKeySet;
+  jwk: jose.JWK;
   jwt: string;
 };
 
@@ -68,18 +68,18 @@ async function signJWT(
   }
 }
 
-async function generateJWKS(
+async function generateJWK(
   publicKey: jose.CryptoKey,
   kid: string
-): Promise<jose.JSONWebKeySet> {
+): Promise<jose.JWK> {
   let jwk: jose.JWK;
   try {
     jwk = await jose.exportJWK(publicKey);
   } catch (err) {
-    throw new SigningError('Failed to generate JWKS', { cause: err });
+    throw new SigningError('Failed to generate JWK', { cause: err });
   }
   jwk.kid = kid;
-  return { keys: [jwk] };
+  return jwk;
 }
 
 export async function createApiKey(
@@ -93,7 +93,7 @@ export async function createApiKey(
     const sub = getSub(options);
     const aud = options.aud;
     const { publicKey, privateKey } = await generateKeyPair(ALG);
-    const jwks = await generateJWKS(publicKey, kid);
+    const jwk = await generateJWK(publicKey, kid);
 
     const overrides: jose.JWTPayload = { sub, iss, aud, exp };
 
@@ -103,7 +103,7 @@ export async function createApiKey(
       ALG,
       kid
     );
-    return { jwks, jwt };
+    return { jwk, jwt };
   } catch (err) {
     if (err instanceof JapikeyError) {
       throw err;
