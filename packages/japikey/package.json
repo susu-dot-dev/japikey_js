@@ -21,32 +21,40 @@
   "license": "MIT",
   "author": "Anil Kulkarni",
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
-  "main": "./packages/japikey/dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "test": "npm run test --workspace=packages/japikey",
-    "test:ci": "npm run test:ci --workspace=packages/japikey",
-    "test:coverage": "npm run test:coverage --workspace=packages/japikey",
-    "test:coverage:ci": "npm run test:coverage:ci --workspace=packages/japikey",
-    "coverage:open": "npm run coverage:open --workspace=packages/japikey",
-    "clean": "npm run clean --workspaces",
-    "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspace=packages/japikey",
-    "lint:fix": "npm run lint:fix --workspace=packages/japikey",
-    "format": "prettier --write packages/*/src/**/*.ts",
-    "format:check": "prettier --check packages/*/src/**/*.ts"
+    "test": "vitest",
+    "test:ci": "CI=1 vitest --run",
+    "test:coverage": "vitest --coverage",
+    "test:coverage:ci": "CI=1 vitest --coverage --run",
+    "coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
-    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4"
+  },
+  "dependencies": {
+    "jose": "^6.0.12",
+    "uuid": "^11.1.0"
   }
 }

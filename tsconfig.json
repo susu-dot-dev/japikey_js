@@ -1,20 +1,9 @@
 {
-  "include": ["src"],
   "compilerOptions": {
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "target": "es2024",
-    "moduleDetection": "force",
-    "module": "NodeNext",
-    "declarationMap": true,
-    "declaration": true,
-    "lib": ["es2024"],
-    "strict": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "allowImportingTsExtensions": true,
-    "rewriteRelativeImportExtensions": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true
+    "baseUrl": ".",
+    "paths": {
+      "@japikey/japikey": ["packages/japikey/src"],
+      "@japikey/japikey/*": ["packages/japikey/src/*"]
+    }
   }
 }
