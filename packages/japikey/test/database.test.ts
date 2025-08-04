@@ -12,14 +12,14 @@ import type * as jose from 'jose';
 import type { DatabaseOperations } from '../src/database/interface.ts';
 import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from '../src/database/interface.ts';
 import SqliteDriver from '../src/database/sqlite.ts';
-import { ALG, createApiKey } from '../src/sign.ts';
+import { createApiKey } from '../src/sign.ts';
 import { apiKeyOptions, userClaims } from './sign.test.ts';
 import type { ApiKeyRow } from '../src/database/interface.ts';
 import {
   DatabaseError,
   IncorrectUsageError,
   InvalidInputError,
-} from '../src/errors.ts';
+} from '@japikey/shared';
 import { unlink } from 'fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'path';

@@ -13,6 +13,9 @@ export default [
         ecmaVersion: 2024,
         sourceType: 'module',
       },
+      globals: {
+        URL: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,

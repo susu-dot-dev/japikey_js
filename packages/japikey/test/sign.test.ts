@@ -1,7 +1,12 @@
 import { describe, test, expect, Mock } from 'vitest';
 import * as jose from 'jose';
-import { createApiKey, CreateApiKeyOptions, VER, ALG } from '../src/sign';
-import { IncorrectUsageError, SigningError, UnknownError } from '../src/errors';
+import { createApiKey, CreateApiKeyOptions } from '../src/sign.ts';
+import { VER, ALG } from '@japikey/shared';
+import {
+  IncorrectUsageError,
+  SigningError,
+  UnknownError,
+} from '@japikey/shared';
 
 const iat = Date.now() - 100;
 export const baseIssuer = new URL('https://example.com');

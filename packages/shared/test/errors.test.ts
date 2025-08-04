@@ -9,7 +9,7 @@ import {
   UnauthorizedError,
   InvalidInputError,
   DatabaseError,
-} from '../src/errors';
+} from '../src/errors.ts';
 describe('Errors', () => {
   const sampleData = { hello: 'world', meaning: 42 };
   const tests: { err: JapikeyError; code: number; errorType: errorType }[] = [

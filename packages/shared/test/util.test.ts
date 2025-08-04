@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { appendPathToUrl } from '../src/util';
+import { appendPathToUrl } from '../src/util.ts';
 
 describe('appendPathToUrl', () => {
   const testCases = [
@@ -23,6 +23,30 @@ describe('appendPathToUrl', () => {
       base: 'https://example.com/',
       path: '/api/v1',
       expected: 'https://example.com/api/v1',
+    },
+    {
+      base: 'https://example.com/subpath-without-trailing-slash',
+      path: 'api-without-leading-slash/v1',
+      expected:
+        'https://example.com/subpath-without-trailing-slash/api-without-leading-slash/v1',
+    },
+    {
+      base: 'https://example.com/subpath-without-trailing-slash',
+      path: '/api-with-leading-slash/v1',
+      expected:
+        'https://example.com/subpath-without-trailing-slash/api-with-leading-slash/v1',
+    },
+    {
+      base: 'https://example.com/subpath-with-trailing-slash/',
+      path: 'api-without-leading-slash/v1',
+      expected:
+        'https://example.com/subpath-with-trailing-slash/api-without-leading-slash/v1',
+    },
+    {
+      base: 'https://example.com/subpath-with-trailing-slash/',
+      path: '/api-with-leading-slash/v1',
+      expected:
+        'https://example.com/subpath-with-trailing-slash/api-with-leading-slash/v1',
     },
 
     // Query parameters and anchors (should be dropped)

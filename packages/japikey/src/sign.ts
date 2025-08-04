@@ -1,13 +1,14 @@
 import * as jose from 'jose';
 import { v7 as uuidv7 } from 'uuid';
-import type { URL } from 'node:url';
 import {
+  ALG,
+  VER,
+  appendPathToUrl,
   JapikeyError,
   IncorrectUsageError,
   SigningError,
   UnknownError,
-} from './errors.ts';
-import { appendPathToUrl } from './util.ts';
+} from '@japikey/shared';
 
 export type CreateApiKeyOptions = {
   sub: string;
@@ -20,11 +21,6 @@ export type CreateApiKeyResult = {
   jwk: jose.JWK;
   jwt: string;
 };
-
-export const ALG = 'RS256';
-export const VER_PREFIX = 'japikey-v';
-export const VER_NUM = 1;
-export const VER = `${VER_PREFIX}${VER_NUM}`;
 
 async function generateKeyPair(
   alg: string

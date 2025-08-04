@@ -1,9 +1,13 @@
 import * as jose from 'jose';
 import { validate as uuidValidate } from 'uuid';
-import { URL } from 'node:url';
-import { ALG, VER_NUM, VER_PREFIX } from './sign.ts';
-import { MalformedTokenError, UnauthorizedError } from './errors.ts';
-import { appendPathToUrl } from './util.ts';
+import {
+  ALG,
+  VER_NUM,
+  VER_PREFIX,
+  appendPathToUrl,
+  MalformedTokenError,
+  UnauthorizedError,
+} from '@japikey/shared';
 
 export type GetJWKS = (data: { kid: string; iss: URL }) => jose.JWTVerifyGetKey;
 
