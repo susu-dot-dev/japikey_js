@@ -27,6 +27,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@japikey/shared': resolve(__dirname, '../shared/src/index.ts'),
+      '@japikey/japikey': resolve(__dirname, '../japikey/src/index.ts'),
     },
   },
 });

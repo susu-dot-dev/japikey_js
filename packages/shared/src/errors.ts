@@ -1,4 +1,4 @@
-type StatusCode = 200 | 400 | 401 | 403 | 500;
+type StatusCode = 200 | 400 | 401 | 403 | 404 | 500;
 export enum errorType {
   UNKNOWN = 'unknown',
   INCORRECT_USAGE = 'incorrect_usage',
@@ -7,6 +7,7 @@ export enum errorType {
   UNAUTHORIZED = 'unauthorized',
   INVALID_INPUT = 'invalid_input',
   DATABASE_ERROR = 'database_error',
+  NOT_FOUND = 'not_found',
 }
 
 export class JapikeyError extends Error {
@@ -53,6 +54,12 @@ export class MalformedTokenError extends JapikeyError {
 export class UnauthorizedError extends JapikeyError {
   constructor(message: string, options?: ErrorOptions) {
     super(403, errorType.UNAUTHORIZED, message, options);
+  }
+}
+
+export class NotFoundError extends JapikeyError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(404, errorType.NOT_FOUND, message, options);
   }
 }
 

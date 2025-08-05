@@ -1,4 +1,4 @@
-import type { ApiKeyRow, DatabaseOperations } from './interface.ts';
+import type { ApiKeyRow, DatabaseDriver } from './interface.ts';
 import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from './interface.ts';
 import {
   IncorrectUsageError,
@@ -47,7 +47,7 @@ type Queries = {
   revoke: StatementSync;
 };
 
-export default class SqliteDriver implements DatabaseOperations {
+export default class SqliteDriver implements DatabaseDriver {
   private db: DatabaseSync;
   private _queries?: Queries;
   private tableName: string;
@@ -171,7 +171,7 @@ export default class SqliteDriver implements DatabaseOperations {
     }
   }
 
-  async shutdown(): Promise<void> {
+  async close(): Promise<void> {
     try {
       this.db.close();
     } catch (err) {

@@ -12,7 +12,7 @@ export const TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS = Symbol(
   'TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS'
 );
 
-export type DatabaseOperations = {
+export type DatabaseDriver = {
   ensureTable: () => Promise<void>;
   insertApiKey: (apiKey: ApiKeyRow) => Promise<void>;
   getApiKey: (kid: string) => Promise<ApiKeyRow | null>;
@@ -22,6 +22,6 @@ export type DatabaseOperations = {
     offset?: number
   ) => Promise<ApiKeyRow[]>;
   revokeApiKey: (filter: { user_id: string; kid: string }) => Promise<void>;
-  shutdown: () => Promise<void>;
+  close: () => Promise<void>;
   [TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS]: () => Promise<void>;
 };

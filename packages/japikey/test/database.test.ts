@@ -9,7 +9,7 @@ import {
 } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import type * as jose from 'jose';
-import type { DatabaseOperations } from '../src/database/interface.ts';
+import type { DatabaseDriver } from '../src/database/interface.ts';
 import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from '../src/database/interface.ts';
 import SqliteDriver from '../src/database/sqlite.ts';
 import { createApiKey } from '../src/sign.ts';
@@ -27,9 +27,10 @@ import { tmpdir } from 'os';
 
 describe('Database', () => {
   const driverNames = ['sqlite'];
-  let drivers: { name: string; driver: DatabaseOperations }[];
+  let drivers: { name: string; driver: DatabaseDriver }[];
   let userId: string;
   let jwk: jose.JWK;
+  let kid: string;
   beforeAll(async () => {
     drivers = [
       {
@@ -46,7 +47,7 @@ describe('Database', () => {
   afterAll(async () => {
     if (drivers) {
       for (const driver of drivers) {
-        await driver.driver.shutdown();
+        await driver.driver.close();
       }
     }
   });
@@ -55,6 +56,7 @@ describe('Database', () => {
     userId = uuidv4();
     const resp = await createApiKey(userClaims(), apiKeyOptions());
     jwk = resp.jwk;
+    kid = resp.kid;
   });
 
   afterEach(async () => {
@@ -66,16 +68,16 @@ describe('Database', () => {
   test.each(driverNames)('%s can insert and get an api key', async name => {
     const driver = drivers.find(d => d.name === name)!.driver;
     const promise = driver.insertApiKey({
-      kid: jwk.kid!,
+      kid: kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
       metadata: {},
     });
     await expect(promise).resolves.toBeUndefined();
-    const apiKey = await driver.getApiKey(jwk.kid!);
+    const apiKey = await driver.getApiKey(kid);
     expect(apiKey).toEqual({
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
@@ -87,7 +89,7 @@ describe('Database', () => {
     '%s returns null if the api key is not found',
     async name => {
       const driver = drivers.find(d => d.name === name)!.driver;
-      const apiKey = await driver.getApiKey(jwk.kid!);
+      const apiKey = await driver.getApiKey(kid);
       expect(apiKey).toBeNull();
     }
   );
@@ -95,28 +97,28 @@ describe('Database', () => {
   test.each(driverNames)('%s can revoke an api key', async name => {
     const driver = drivers.find(d => d.name === name)!.driver;
     const promise = driver.insertApiKey({
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
       metadata: {},
     });
     await expect(promise).resolves.toBeUndefined();
-    let apiKey = await driver.getApiKey(jwk.kid!);
+    let apiKey = await driver.getApiKey(kid);
     expect(apiKey).toEqual({
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
       metadata: {},
     });
     await expect(
-      driver.revokeApiKey({ user_id: userId, kid: jwk.kid! })
+      driver.revokeApiKey({ user_id: userId, kid })
     ).resolves.toBeUndefined();
 
-    apiKey = await driver.getApiKey(jwk.kid!);
+    apiKey = await driver.getApiKey(kid);
     expect(apiKey).toEqual({
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: true,
       jwk: jwk,
@@ -134,21 +136,21 @@ describe('Database', () => {
 
     // Insert the API keys
     await driver.insertApiKey({
-      kid: apiKey1.jwk.kid!,
+      kid: apiKey1.kid,
       user_id: userId,
       revoked: false,
       jwk: apiKey1.jwk,
       metadata: {},
     });
     await driver.insertApiKey({
-      kid: apiKey2.jwk.kid!,
+      kid: apiKey2.kid,
       user_id: userId,
       revoked: true,
       jwk: apiKey2.jwk,
       metadata: { name: 'test-key' },
     });
     await driver.insertApiKey({
-      kid: apiKey3.jwk.kid!,
+      kid: apiKey3.kid,
       user_id: userId,
       revoked: false,
       jwk: apiKey3.jwk,
@@ -161,21 +163,21 @@ describe('Database', () => {
     expect(apiKeys).toEqual(
       expect.arrayContaining([
         {
-          kid: apiKey1.jwk.kid!,
+          kid: apiKey1.kid,
           user_id: userId,
           revoked: false,
           jwk: apiKey1.jwk,
           metadata: {},
         },
         {
-          kid: apiKey2.jwk.kid!,
+          kid: apiKey2.kid,
           user_id: userId,
           revoked: true,
           jwk: apiKey2.jwk,
           metadata: { name: 'test-key' },
         },
         {
-          kid: apiKey3.jwk.kid!,
+          kid: apiKey3.kid,
           user_id: userId,
           revoked: false,
           jwk: apiKey3.jwk,
@@ -204,7 +206,7 @@ describe('Database', () => {
       const driver = drivers.find(d => d.name === name)!.driver;
 
       await driver.insertApiKey({
-        kid: jwk.kid!,
+        kid,
         user_id: userId,
         revoked: false,
         jwk: jwk,
@@ -213,7 +215,7 @@ describe('Database', () => {
 
       await expect(
         driver.insertApiKey({
-          kid: jwk.kid!,
+          kid,
           user_id: userId,
           revoked: false,
           jwk: jwk,
@@ -228,7 +230,7 @@ describe('Database', () => {
     const circularReference: { circular?: unknown } = {};
     circularReference.circular = circularReference;
     const apiKey = {
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
@@ -246,7 +248,7 @@ describe('Database', () => {
       unknown
     >;
     const apiKey = {
-      kid: jwk.kid!,
+      kid,
       user_id: userId,
       revoked: false,
       jwk: jwk,
@@ -258,9 +260,11 @@ describe('Database', () => {
 
 describe('SqliteDriver', () => {
   let jwk: jose.JWK;
+  let kid: string;
   beforeAll(async () => {
     const response = await createApiKey(userClaims(), apiKeyOptions());
     jwk = response.jwk;
+    kid = response.kid;
   });
   const invalidTableNames = [
     '',
@@ -288,7 +292,7 @@ describe('SqliteDriver', () => {
     try {
       await expect(
         driver.insertApiKey({
-          kid: jwk.kid!,
+          kid: kid,
           user_id: uuidv4(),
           revoked: false,
           jwk: jwk,
@@ -296,20 +300,20 @@ describe('SqliteDriver', () => {
         })
       ).rejects.toThrow(IncorrectUsageError);
     } finally {
-      await driver.shutdown();
+      await driver.close();
     }
   });
 
   test('throws an error if the database is closed before calling ensureTable', async () => {
     const driver = new SqliteDriver(':memory:');
-    await driver.shutdown();
+    await driver.close();
     await expect(driver.ensureTable()).rejects.toThrow(DatabaseError);
   });
 
   test('throws an error if the database is closed before calling prepareStatements', async () => {
     const driver = new SqliteDriver(':memory:');
     await driver.ensureTable();
-    await driver.shutdown();
+    await driver.close();
     const privateDriver = driver as any;
     expect(() => privateDriver.prepareStatements()).toThrow(DatabaseError);
   });
@@ -317,10 +321,10 @@ describe('SqliteDriver', () => {
   test('throws an error if the database is closed before calling insertApiKey', async () => {
     const driver = new SqliteDriver(':memory:');
     await expect(driver.ensureTable()).resolves.toBeUndefined();
-    await driver.shutdown();
+    await driver.close();
     await expect(
       driver.insertApiKey({
-        kid: jwk.kid!,
+        kid,
         user_id: uuidv4(),
         revoked: false,
         jwk: jwk,
@@ -332,31 +336,31 @@ describe('SqliteDriver', () => {
   test('throws an error if the database is closed before calling getApiKey', async () => {
     const driver = new SqliteDriver(':memory:');
     await expect(driver.ensureTable()).resolves.toBeUndefined();
-    await driver.shutdown();
-    await expect(driver.getApiKey(jwk.kid!)).rejects.toThrow(DatabaseError);
+    await driver.close();
+    await expect(driver.getApiKey(kid)).rejects.toThrow(DatabaseError);
   });
 
   test('throws an error if the database is closed before calling findApiKeys', async () => {
     const driver = new SqliteDriver(':memory:');
     await expect(driver.ensureTable()).resolves.toBeUndefined();
-    await driver.shutdown();
+    await driver.close();
     await expect(driver.findApiKeys(uuidv4())).rejects.toThrow(DatabaseError);
   });
 
   test('throws an error if the database is closed before calling revokeApiKey', async () => {
     const driver = new SqliteDriver(':memory:');
     await expect(driver.ensureTable()).resolves.toBeUndefined();
-    await driver.shutdown();
+    await driver.close();
     await expect(
-      driver.revokeApiKey({ user_id: uuidv4(), kid: jwk.kid! })
+      driver.revokeApiKey({ user_id: uuidv4(), kid })
     ).rejects.toThrow(DatabaseError);
   });
 
   test('throws an error if the database is closed twice', async () => {
     const driver = new SqliteDriver(':memory:');
     await expect(driver.ensureTable()).resolves.toBeUndefined();
-    await driver.shutdown();
-    await expect(driver.shutdown()).rejects.toThrow(DatabaseError);
+    await driver.close();
+    await expect(driver.close()).rejects.toThrow(DatabaseError);
   });
 
   test('throws an error if the data cannot be JSON deserialized', async () => {
@@ -366,29 +370,27 @@ describe('SqliteDriver', () => {
       const driver = new SqliteDriver(tempFile);
       await driver.ensureTable();
       await driver.insertApiKey({
-        kid: jwk.kid!,
+        kid,
         user_id: uuidv4(),
         revoked: false,
         jwk: jwk,
         metadata: {},
       });
-      await driver.shutdown();
+      await driver.close();
 
       const db = new DatabaseSync(tempFile);
       // Corrupt the metadata so that parsing it will fail
       db.exec(
-        `UPDATE japikeys SET metadata = 'not valid json {' WHERE kid = '${jwk.kid}'`
+        `UPDATE japikeys SET metadata = 'not valid json {' WHERE kid = '${kid}'`
       );
       db.close();
 
       const newDriver = new SqliteDriver(tempFile);
       await newDriver.ensureTable();
 
-      await expect(newDriver.getApiKey(jwk.kid!)).rejects.toThrow(
-        DatabaseError
-      );
+      await expect(newDriver.getApiKey(kid)).rejects.toThrow(DatabaseError);
 
-      await newDriver.shutdown();
+      await newDriver.close();
     } finally {
       await unlink(tempFile);
     }
