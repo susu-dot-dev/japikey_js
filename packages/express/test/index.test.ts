@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
+import * as jose from 'jose';
 import request from 'supertest';
 import express from 'express';
 import {
@@ -31,16 +32,18 @@ describe('createApiKeyRouter', () => {
   let app: express.Application;
   let options: CreateRouterOptions;
   let getUserId: Mock;
+  let parseCreateApiKeyRequest: Mock;
   let userId: string;
   beforeAll(async () => {
     db = new SqliteDriver(':memory:');
     getUserId = vi.fn();
+    parseCreateApiKeyRequest = vi.fn();
     await db.ensureTable();
     options = {
       getUserId,
+      parseCreateApiKeyRequest,
       issuer: new URL('https://example.com'),
       aud: 'api-key',
-      maxDurationSeconds: 3600,
       db,
     };
     router = createApiKeyRouter(options);
@@ -54,6 +57,13 @@ describe('createApiKeyRouter', () => {
     getUserId.mockReset();
     userId = uuidv4();
     getUserId.mockResolvedValue(userId);
+
+    parseCreateApiKeyRequest.mockReset();
+    parseCreateApiKeyRequest.mockResolvedValue({
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+      claims: {},
+      databaseMetadata: {},
+    });
   });
 
   test('creates and gets an api key', async () => {
@@ -71,6 +81,54 @@ describe('createApiKeyRouter', () => {
         kid,
         user_id: userId,
         revoked: false,
+      })
+    );
+  });
+
+  test('creates and gets an api key with claims from request body', async () => {
+    // Mock parseCreateApiKeyRequest to read from request body
+    parseCreateApiKeyRequest.mockImplementation(async request => {
+      const body = request.body || {};
+      return {
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+        claims: {
+          scopes: ['read', 'write'],
+          os: 'linux',
+        },
+        databaseMetadata: {
+          tags: ['red'],
+        },
+      };
+    });
+
+    const response = await request(app)
+      .post('/')
+      .send({
+        scopes: ['read', 'write'],
+        os: 'linux',
+      });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      api_key: expect.any(String),
+      kid: expect.any(String),
+    });
+
+    const { kid, api_key } = response.body;
+
+    const decoded = await jose.decodeJwt(api_key);
+    expect(decoded.scopes).toEqual(['read', 'write']);
+    expect(decoded.os).toBe('linux');
+
+    const getResponse = await request(app).get(`/${kid}`);
+    expect(getResponse.status).toBe(200);
+    expect(getResponse.body).toEqual(
+      expect.objectContaining({
+        kid,
+        user_id: userId,
+        revoked: false,
+        metadata: {
+          tags: ['red'],
+        },
       })
     );
   });
