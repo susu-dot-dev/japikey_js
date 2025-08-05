@@ -1,16 +1,12 @@
 import type { Request, NextFunction, Response } from 'express';
 import { Router } from 'express';
 import type { JSONWebKeySet } from 'jose';
-import {
-  UnauthorizedError,
-  JapikeyError,
-  NotFoundError,
-} from '@japikey/shared';
+import { JapikeyError, NotFoundError } from '@japikey/shared';
 import { createApiKey, type DatabaseDriver } from '@japikey/japikey';
 
 function errorHandler(
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction
 ): void {
@@ -32,11 +28,17 @@ function errorHandler(
   res.status(err.code).json({ error: data });
 }
 
+export type CreateApiKeyData = {
+  expiresAt: Date;
+  claims: Record<string, unknown>;
+  databaseMetadata: Record<string, unknown>;
+};
+
 export type CreateRouterOptions = {
   getUserId: (request: Request) => Promise<string>;
+  parseCreateApiKeyRequest: (request: Request) => Promise<CreateApiKeyData>;
   issuer: URL;
   aud: string;
-  maxDurationSeconds: number;
   db: DatabaseDriver;
 };
 
@@ -44,8 +46,8 @@ export function createApiKeyRouter(options: CreateRouterOptions): Router {
   const router = Router();
   router.post('/', async (request, response) => {
     const userId = await options.getUserId(request);
-    const claims = {}; // TODO
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365); // TODO
+    const { expiresAt, claims, databaseMetadata } =
+      await options.parseCreateApiKeyRequest(request);
     const { jwt, jwk } = await createApiKey(claims, {
       sub: userId,
       iss: options.issuer,
@@ -58,7 +60,7 @@ export function createApiKeyRouter(options: CreateRouterOptions): Router {
       user_id: userId,
       revoked: false,
       jwk,
-      metadata: {}, // TODO
+      metadata: databaseMetadata,
     });
     response.json({ api_key: jwt, kid });
   });
