@@ -9,9 +9,9 @@ import {
   UnauthorizedError,
   InvalidInputError,
   DatabaseError,
+  NotFoundError,
 } from '../src/errors.ts';
 describe('Errors', () => {
-  const sampleData = { hello: 'world', meaning: 42 };
   const tests: { err: JapikeyError; code: number; errorType: errorType }[] = [
     { err: new UnknownError('test'), code: 500, errorType: errorType.UNKNOWN },
     {
@@ -43,6 +43,11 @@ describe('Errors', () => {
       err: new DatabaseError('test'),
       code: 500,
       errorType: errorType.DATABASE_ERROR,
+    },
+    {
+      err: new NotFoundError('test'),
+      code: 404,
+      errorType: errorType.NOT_FOUND,
     },
   ];
   test.each(tests)(

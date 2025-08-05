@@ -1,1 +1,1 @@
-../authenticate/eslint.config.js
+../eslint_browser.config.js

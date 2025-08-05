@@ -20,6 +20,7 @@ export type CreateApiKeyOptions = {
 export type CreateApiKeyResult = {
   jwk: jose.JWK;
   jwt: string;
+  kid: string;
 };
 
 async function generateKeyPair(
@@ -99,7 +100,7 @@ export async function createApiKey(
       ALG,
       kid
     );
-    return { jwk, jwt };
+    return { jwk, jwt, kid };
   } catch (err) {
     if (err instanceof JapikeyError) {
       throw err;
