@@ -1,5 +1,5 @@
 {
-  "name": "@japikey/japikey",
+  "name": "@japikey/monorepo",
   "version": "0.1.0",
   "description": "Library to create API keys powered by JWT and JWKS",
   "engines": {
@@ -29,7 +29,7 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "clean": "npm run clean --workspaces",
-    "build": "npm run build --workspace=@japikey/shared && npm run build --workspace=@japikey/authenticate && npm run build --workspace=@japikey/japikey",
+    "build": "npm run build --workspace=@japikey/shared && npm run build --workspace=@japikey/authenticate && npm run build --workspace=@japikey/japikey && npm run build --workspace=@japikey/cloudflare && npm run build --workspace=@japikey/express",
     "lint": "eslint --flag v10_config_lookup_from_file .",
     "lint:fix": "eslint --flag v10_config_lookup_from_file  . --fix",
     "format": "prettier --write packages/*/src/**/*.ts",
