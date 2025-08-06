@@ -1,12 +1,19 @@
 import type { Request, NextFunction, Response } from 'express';
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import {
   createApiKey,
   JapikeyError,
   NotFoundError,
+  UnauthorizedError,
   type DatabaseDriver,
   type JSONWebKeySet,
 } from '@japikey/japikey';
+
+import {
+  shouldAuthenticate,
+  authenticate,
+  AuthenticateOptions,
+} from '@japikey/authenticate';
 
 function errorHandler(
   err: Error,
@@ -112,6 +119,37 @@ export function createJWKSRouter(db: DatabaseDriver): Router {
     };
     response.json(jwks);
   });
+  router.use(errorHandler);
+  return router;
+}
+
+export function authenticateApiKey(
+  options: AuthenticateOptions
+): RequestHandler {
+  const router = Router();
+  const handler = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    const authorization = request.headers.authorization ?? '';
+    if (!authorization.toLowerCase().startsWith('bearer ')) {
+      return next();
+    }
+    const token = authorization.slice('bearer '.length);
+    const isApiKeyAuth = await shouldAuthenticate(token, options.baseIssuer);
+    if (!isApiKeyAuth) {
+      return next();
+    }
+    const payload = await authenticate(token, options);
+    (request as any).user = {
+      type: 'api_key',
+      claims: payload,
+      id: payload.sub,
+    };
+    next();
+  };
+  router.use(handler);
   router.use(errorHandler);
   return router;
 }

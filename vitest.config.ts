@@ -16,6 +16,10 @@ const getProjectConfig = (name: string): TestProjectInlineConfiguration => {
           __dirname,
           './packages/japikey/src/index.ts'
         ),
+        '@japikey/authenticate': resolve(
+          __dirname,
+          './packages/authenticate/src/index.ts'
+        ),
       },
     },
   };

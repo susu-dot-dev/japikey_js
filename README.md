@@ -17,6 +17,8 @@ Interested in learning more? Check out the [How It Works](#how-it-works) section
 
 # Getting Started
 
+For express applications, see the [Express quickstart](./docs/express.md)
+
 # Technology Refresher
 
 japikey relies on the standards of public/private key cryptography, via the JWT and JWKS format. Because each of these core pieces are important, let's spend a moment to recap the core features that are used.

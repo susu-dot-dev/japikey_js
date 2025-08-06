@@ -116,7 +116,7 @@ describe('createGetJWKS', () => {
     const verifyPromise = jose.jwtVerify(jwt, getKey);
     await expect(verifyPromise).resolves.toBeDefined();
     await expect(mockFetch).toHaveBeenCalledWith(
-      `https://example.com/${kid}/.well_known/jwks.json`,
+      `https://example.com/${kid}/.well-known/jwks.json`,
       expect.anything()
     );
   });
