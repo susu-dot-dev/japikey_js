@@ -40,7 +40,8 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "dependencies": {
-    "@japikey/japikey": "0.1.0"
+    "@japikey/japikey": "0.1.0",
+    "path-to-regexp": "^8.2.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250806.0",
