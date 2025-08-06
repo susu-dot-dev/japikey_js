@@ -32,12 +32,8 @@
     }
   },
   "scripts": {
-    "test": "vitest --run",
-    "test:watch": "vitest",
-    "test:ci": "CI=1 vitest --run",
-    "test:coverage": "vitest --run --coverage",
-    "test:coverage:watch": "vitest --coverage",
-    "coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
     "lint": "eslint .",
