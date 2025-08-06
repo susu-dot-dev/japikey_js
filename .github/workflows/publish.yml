@@ -1,0 +1,31 @@
+name: Publish Package to npmjs
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci --workspaces
+      - run: npm run build
+      - name: Publish the shared package
+        run: cd packages/shared && npm publish --provenance --access public
+      - name: Publish the authenticate package
+        run: cd packages/authenticate && npm publish --provenance --access public
+      - name: Publish the japikey package
+        run: cd packages/japikey && npm publish --provenance --access public
+      - name: Publish the sqlite package
+        run: cd packages/sqlite && npm publish --provenance --access public
+      - name: Publish the cloudflare package
+        run: cd packages/cloudflare && npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
