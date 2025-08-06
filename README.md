@@ -19,6 +19,8 @@ Interested in learning more? Check out the [How It Works](#how-it-works) section
 
 For express applications, see the [Express quickstart](./docs/express.md)
 
+For cloudflare workers, see [Cloudflare quickstart](./docs/cloudflare.md)
+
 # Technology Refresher
 
 japikey relies on the standards of public/private key cryptography, via the JWT and JWKS format. Because each of these core pieces are important, let's spend a moment to recap the core features that are used.
