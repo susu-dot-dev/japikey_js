@@ -1,16 +1,16 @@
 {
   "name": "@japikey/express",
   "version": "0.1.0",
-  "description": "Express middleware for JAPIKey authentication",
+  "description": "Express endpoints for JAPIKey authentication",
   "engines": {
     "node": ">=22.5.0"
   },
   "keywords": [
+    "japikey",
     "apikey",
     "jwt",
     "jwks",
-    "express",
-    "middleware"
+    "express"
   ],
   "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
   "bugs": {
