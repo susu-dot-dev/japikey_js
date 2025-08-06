@@ -3,9 +3,8 @@ import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import globals from 'globals';
 
-export default [
-  js.configs.recommended,
-  {
+function createConfig(extraGlobals) {
+  return {
     files: ['src/**/*.ts'],
     languageOptions: {
       parser: tsparser,
@@ -15,7 +14,7 @@ export default [
         sourceType: 'module',
       },
       globals: {
-        ...globals.browser,
+        ...extraGlobals,
       },
     },
     plugins: {
@@ -42,8 +41,22 @@ export default [
       'no-debugger': 'error',
       'no-unused-vars': 'off',
     },
-  },
-  {
-    ignores: ['**/dist/**', 'node_modules/', '*.js'],
-  },
+  };
+}
+
+const ignores = {
+  ignores: ['**/dist/**', 'node_modules/', '*.js'],
+};
+
+export const browserConfig = [
+  js.configs.recommended,
+  createConfig(globals.browser),
+  ignores,
 ];
+export const nodeConfig = [
+  js.configs.recommended,
+  createConfig(globals.node),
+  ignores,
+];
+
+export default nodeConfig;

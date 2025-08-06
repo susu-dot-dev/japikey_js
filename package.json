@@ -30,8 +30,8 @@
     "test:coverage": "vitest --coverage",
     "clean": "npm run clean --workspaces",
     "build": "npm run build --workspace=@japikey/shared && npm run build --workspace=@japikey/authenticate && npm run build --workspace=@japikey/japikey",
-    "lint": "npm run lint --workspaces",
-    "lint:fix": "npm run lint:fix --workspaces",
+    "lint": "eslint --flag v10_config_lookup_from_file .",
+    "lint:fix": "eslint --flag v10_config_lookup_from_file  . --fix",
     "format": "prettier --write packages/*/src/**/*.ts",
     "format:check": "prettier --check packages/*/src/**/*.ts"
   },

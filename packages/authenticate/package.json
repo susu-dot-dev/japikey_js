@@ -34,7 +34,7 @@
     "test:coverage": "vitest --coverage",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
-    "lint": "eslint .",
+    "lint": "eslint --flag v10_config_lookup_from_file .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts"
