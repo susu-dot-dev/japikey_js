@@ -1,14 +1,13 @@
 {
   "name": "@japikey/cloudflare",
   "version": "0.1.0",
-  "description": "Cloudflare integration utilities for JAPIKey",
+  "description": "Cloudflare worker-based endpoints for japikey",
   "engines": {
     "node": ">=22.5.0"
   },
   "keywords": [
     "cloudflare",
-    "japikey",
-    "integration"
+    "japikey"
   ],
   "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
   "bugs": {

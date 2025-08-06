@@ -6,6 +6,7 @@
     "node": ">=22.5.0"
   },
   "keywords": [
+    "japikey",
     "apikey",
     "jwt",
     "jwks"

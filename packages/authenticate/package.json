@@ -1,13 +1,16 @@
 {
   "name": "@japikey/authenticate",
   "version": "0.1.0",
-  "description": "Authentication utilities for JAPIKey",
+  "description": "Library to authenticate an API key, in the browser or backend",
   "engines": {
     "node": ">=22.5.0"
   },
   "keywords": [
     "authentication",
     "auth",
+    "apikey",
+    "jwt",
+    "jwks",
     "japikey"
   ],
   "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",

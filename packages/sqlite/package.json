@@ -1,14 +1,13 @@
 {
   "name": "@japikey/sqlite",
   "version": "0.1.0",
-  "description": "SQLite utilities for JAPIKey",
+  "description": "SQLite driver for japikey",
   "engines": {
     "node": ">=22.5.0"
   },
   "keywords": [
-    "sqlite",
-    "database",
-    "japikey"
+    "japikey",
+    "sqlite"
   ],
   "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
   "bugs": {
