@@ -26,9 +26,8 @@
   ],
   "main": "./packages/japikey/dist/index.js",
   "scripts": {
-    "test": "npm run test --workspaces",
-    "test:ci": "npm run test:ci --workspaces",
-    "test:coverage": "npm run test:coverage --workspaces",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
     "clean": "npm run clean --workspaces",
     "build": "npm run build --workspace=@japikey/shared && npm run build --workspace=@japikey/authenticate && npm run build --workspace=@japikey/japikey",
     "lint": "npm run lint --workspaces",

@@ -1,0 +1,56 @@
+import { defineConfig, TestProjectInlineConfiguration } from 'vitest/config';
+import { resolve } from 'path';
+
+const getProjectConfig = (name: string): TestProjectInlineConfiguration => {
+  return {
+    extends: true,
+    test: {
+      include: [`packages/${name}/test/**/*.test.ts`],
+      globals: true,
+      environment: 'node',
+    },
+    resolve: {
+      alias: {
+        '@japikey/shared': resolve(__dirname, './packages/shared/src/index.ts'),
+        '@japikey/japikey': resolve(
+          __dirname,
+          './packages/japikey/src/index.ts'
+        ),
+      },
+    },
+  };
+};
+
+const japikeyConfig = getProjectConfig('japikey');
+japikeyConfig.test!.setupFiles = [
+  './packages/japikey/test/setupFiles/mockJose.ts',
+];
+
+export default defineConfig({
+  test: {
+    projects: [
+      japikeyConfig,
+      getProjectConfig('shared'),
+      getProjectConfig('authenticate'),
+      getProjectConfig('express'),
+    ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      exclude: [
+        '**/node_modules/',
+        '**/dist/',
+        '**/test/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/coverage/',
+      ],
+      thresholds: {
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
+      },
+    },
+  },
+});
