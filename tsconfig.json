@@ -3,12 +3,19 @@
     "baseUrl": ".",
     "paths": {
       "@japikey/japikey": ["packages/japikey/src"],
-      "@japikey/japikey/*": ["packages/japikey/src/*"]
+      "@japikey/japikey/*": ["packages/japikey/src/*"],
+      "@japikey/shared": ["packages/shared/src"],
+      "@japikey/shared/*": ["packages/shared/src/*"],
+      "@japikey/authenticate": ["packages/authenticate/src"],
+      "@japikey/authenticate/*": ["packages/authenticate/src/*"],
+      "@japikey/express": ["packages/express/src"],
+      "@japikey/express/*": ["packages/express/src/*"]
     },
     "esModuleInterop": true,
     "target": "es2024",
     "moduleDetection": "force",
-    "module": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "declarationMap": true,
     "declaration": true,
     "lib": ["es2024"],

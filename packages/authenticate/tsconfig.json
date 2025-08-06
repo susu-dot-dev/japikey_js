@@ -1,1 +1,8 @@
-../tsconfig_browser.json
+{
+  "extends": "../../tsconfig.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": "."
+  }
+}
