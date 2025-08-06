@@ -17,14 +17,20 @@ import {
   createApiKey,
   type DatabaseDriver,
 } from '@japikey/japikey';
-import { apiKeyOptions, userClaims } from '../../japikey/test/testHelpers.ts';
+import {
+  apiKeyOptions,
+  baseIssuer,
+  userClaims,
+} from '../../japikey/test/testHelpers.ts';
 import {
   createApiKeyRouter,
   createJWKSRouter,
   CreateRouterOptions,
+  authenticateApiKey,
 } from '../src/index.ts';
 import { Router } from 'express';
 import { errorType, UnauthorizedError } from '@japikey/shared';
+import { AuthenticateOptions, createGetJWKS } from '@japikey/authenticate';
 
 describe('createApiKeyRouter', () => {
   let db: DatabaseDriver;
@@ -370,5 +376,141 @@ describe('createJWKSRouter', () => {
       '/non-existent-kid/.well-known/jwks.json'
     );
     expect(response.status).toBe(418);
+  });
+});
+
+describe('authenticateMiddleware', () => {
+  let app: express.Application;
+  let db: DatabaseDriver;
+  let userId: string;
+  let jwksRouter: Router;
+  beforeAll(async () => {
+    db = new SqliteDriver(':memory:');
+    await db.ensureTable();
+
+    jwksRouter = createJWKSRouter(db);
+    app = express();
+    const customFetch: typeof fetch = async (url: string | URL | Request) => {
+      const r = new Request(url);
+      const path = new URL(r.url).pathname;
+      const response = await request(app).get(path);
+      return new Response(JSON.stringify(response.body), {
+        status: response.status,
+        headers: response.headers,
+      });
+    };
+
+    const getJWKS = createGetJWKS(baseIssuer, {
+      [jose.customFetch]: customFetch,
+    });
+
+    const authenticateOptions: AuthenticateOptions = {
+      baseIssuer: baseIssuer,
+      getJWKS,
+    };
+    // Mount the jwksRouter at a specific path
+    app.use('/', jwksRouter);
+    app.use('/', authenticateApiKey(authenticateOptions));
+    app.use('/check_auth', (req, res) => {
+      res.json({ user: (req as any).user ?? null });
+    });
+  });
+  afterAll(async () => {
+    await db.close();
+  });
+
+  beforeEach(async () => {
+    userId = uuidv4();
+  });
+
+  test('ensure jwks router works properly', async () => {
+    const response = await request(app).get(
+      `/${uuidv4()}/.well-known/jwks.json`
+    );
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: {
+        message: 'API key not found',
+        type: errorType.NOT_FOUND,
+        stack: expect.anything(),
+      },
+    });
+  });
+
+  test('authorizes a valid api key', async () => {
+    const { jwk, kid, jwt } = await createApiKey(userClaims(), {
+      ...apiKeyOptions(),
+      sub: userId,
+    });
+    await db.insertApiKey({
+      user_id: userId,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    const response = await request(app)
+      .get('/check_auth')
+      .set('Authorization', `Bearer ${jwt}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      user: {
+        type: 'api_key',
+        claims: expect.objectContaining({
+          sub: userId,
+        }),
+        id: userId,
+      },
+    });
+  });
+
+  test('Does nothing if there is no auth header', async () => {
+    const response = await request(app).get('/check_auth');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ user: null });
+  });
+
+  test('Does nothing if the auth header is not a bearer token', async () => {
+    const response = await request(app)
+      .get('/check_auth')
+      .set('Authorization', 'Basic 1234567890');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ user: null });
+  });
+
+  test('Does nothing if the auth header is not an api key', async () => {
+    const jwt = await new jose.UnsecuredJWT({ sub: userId }).encode();
+    const response = await request(app)
+      .get('/check_auth')
+      .set('Authorization', `Bearer ${jwt}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ user: null });
+  });
+
+  test('Throws an error if the api key is revoked', async () => {
+    const { jwk, kid, jwt } = await createApiKey(userClaims(), {
+      ...apiKeyOptions(),
+      sub: userId,
+    });
+    await db.insertApiKey({
+      user_id: userId,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    await db.revokeApiKey({ user_id: userId, kid });
+    const response = await request(app)
+      .get('/check_auth')
+      .set('Authorization', `Bearer ${jwt}`);
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: {
+        message: 'Failed to verify token',
+        type: errorType.UNAUTHORIZED,
+        stack: expect.anything(),
+        causeStack: expect.anything(),
+      },
+    });
   });
 });

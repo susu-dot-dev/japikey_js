@@ -93,7 +93,7 @@ export function createGetJWKS(
     // but adding defense-in-depth is a good idea as this is a key part of ensuring
     // security of the feature
     validateIssuer(data.iss.toString(), baseIssuer);
-    const url = appendPathToUrl(data.iss, '.well_known/jwks.json');
+    const url = appendPathToUrl(data.iss, '.well-known/jwks.json');
     return jose.createRemoteJWKSet(url, options);
   };
 }

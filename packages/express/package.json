@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@japikey/japikey": "0.1.0",
+    "@japikey/authenticate": "0.1.0",
     "@japikey/shared": "0.1.0"
   },
   "peerDependencies": {
