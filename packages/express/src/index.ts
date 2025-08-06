@@ -2,11 +2,11 @@ import type { Request, NextFunction, Response } from 'express';
 import { Router } from 'express';
 import {
   createApiKey,
-  errors,
+  JapikeyError,
+  NotFoundError,
   type DatabaseDriver,
   type JSONWebKeySet,
 } from '@japikey/japikey';
-const { JapikeyError, NotFoundError } = errors;
 
 function errorHandler(
   err: Error,

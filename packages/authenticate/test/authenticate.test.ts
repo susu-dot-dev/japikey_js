@@ -7,15 +7,13 @@ import {
   authenticate,
   type GetJWKS,
 } from '../src/index.ts';
-import { ALG } from '@japikey/shared';
+import { ALG, MalformedTokenError, UnauthorizedError } from '@japikey/shared';
 import { createApiKey } from '../../japikey/src/sign.ts';
 import {
   apiKeyOptions,
   userClaims,
   baseIssuer,
 } from '../../japikey/test/testHelpers.ts';
-import { errors } from '@japikey/shared';
-const { MalformedTokenError, UnauthorizedError } = errors;
 
 describe('shouldAuthenticate', () => {
   test('valid token', async () => {

@@ -1,7 +1,10 @@
 import type { ApiKeyRow, DatabaseDriver } from './interface.ts';
 import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from './interface.ts';
-import { errors } from '@japikey/shared';
-const { IncorrectUsageError, InvalidInputError, DatabaseError } = errors;
+import {
+  IncorrectUsageError,
+  InvalidInputError,
+  DatabaseError,
+} from '@japikey/shared';
 import type { StatementSync, SQLInputValue, SQLOutputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
 

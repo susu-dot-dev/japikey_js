@@ -1,8 +1,14 @@
 import * as jose from 'jose';
 import { v7 as uuidv7 } from 'uuid';
-import { ALG, VER, appendPathToUrl, errors } from '@japikey/shared';
-const { JapikeyError, IncorrectUsageError, SigningError, UnknownError } =
-  errors;
+import {
+  ALG,
+  VER,
+  appendPathToUrl,
+  JapikeyError,
+  IncorrectUsageError,
+  SigningError,
+  UnknownError,
+} from '@japikey/shared';
 
 export type CreateApiKeyOptions = {
   sub: string;

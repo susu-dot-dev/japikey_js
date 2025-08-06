@@ -1,4 +1,4 @@
-import { errors } from '@japikey/shared';
+import { NotFoundError, JapikeyError } from '@japikey/shared';
 import type { DatabaseDriver, JSONWebKeySet } from '@japikey/japikey';
 import { validate as validateUuid } from 'uuid';
 import type {
@@ -6,8 +6,6 @@ import type {
   Request,
   Response as CloudflareResponse,
 } from '@cloudflare/workers-types';
-
-const { NotFoundError, JapikeyError } = errors;
 
 function castResponse(response: Response): CloudflareResponse {
   // CloudflareResponse is just a typescript type, not something that you can call

@@ -21,9 +21,8 @@ import {
   createApiKey,
   SqliteDriver,
   DatabaseDriver,
-  errors,
+  errorType,
 } from '@japikey/japikey';
-const { errorType } = errors;
 import {
   baseIssuer,
   userClaims,

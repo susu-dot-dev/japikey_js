@@ -1,9 +1,13 @@
 import { describe, test, expect, Mock } from 'vitest';
 import * as jose from 'jose';
 import { createApiKey } from '../src/sign.ts';
-import { VER, ALG } from '@japikey/shared';
-import { errors } from '@japikey/shared';
-const { IncorrectUsageError, SigningError, UnknownError } = errors;
+import {
+  VER,
+  ALG,
+  IncorrectUsageError,
+  SigningError,
+  UnknownError,
+} from '@japikey/shared';
 import { iat, apiKeyOptions, userClaims } from './testHelpers.ts';
 
 describe('createApiKey', () => {
