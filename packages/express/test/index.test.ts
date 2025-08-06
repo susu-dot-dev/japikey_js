@@ -24,7 +24,8 @@ import {
   CreateRouterOptions,
 } from '../src/index.ts';
 import { Router } from 'express';
-import { errorType, UnauthorizedError } from '@japikey/shared';
+import { errors } from '@japikey/shared';
+const { errorType, UnauthorizedError } = errors;
 
 describe('createApiKeyRouter', () => {
   let db: DatabaseDriver;

@@ -40,9 +40,10 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "dependencies": {
-    "@japikey/shared": "0.1.0"
+    "@japikey/japikey": "0.1.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250806.0",
     "@types/node": "^24.1.0",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
@@ -50,6 +51,7 @@
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^14.0.0",
+    "jose": "^6.0.12",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "vitest": "^3.2.4"

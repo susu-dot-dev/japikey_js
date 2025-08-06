@@ -15,11 +15,8 @@ import SqliteDriver from '../src/database/sqlite.ts';
 import { createApiKey } from '../src/sign.ts';
 import { apiKeyOptions, userClaims } from './testHelpers.ts';
 import type { ApiKeyRow } from '../src/database/interface.ts';
-import {
-  DatabaseError,
-  IncorrectUsageError,
-  InvalidInputError,
-} from '@japikey/shared';
+import { errors } from '@japikey/shared';
+const { DatabaseError, IncorrectUsageError, InvalidInputError } = errors;
 import { unlink } from 'fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'path';

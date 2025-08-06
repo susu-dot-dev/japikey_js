@@ -14,7 +14,8 @@ import {
   userClaims,
   baseIssuer,
 } from '../../japikey/test/testHelpers.ts';
-import { MalformedTokenError, UnauthorizedError } from '@japikey/shared';
+import { errors } from '@japikey/shared';
+const { MalformedTokenError, UnauthorizedError } = errors;
 
 describe('shouldAuthenticate', () => {
   test('valid token', async () => {

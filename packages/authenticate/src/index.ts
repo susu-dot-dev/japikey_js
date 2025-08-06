@@ -5,9 +5,10 @@ import {
   VER_NUM,
   VER_PREFIX,
   appendPathToUrl,
-  MalformedTokenError,
-  UnauthorizedError,
+  errors,
 } from '@japikey/shared';
+
+const { MalformedTokenError, UnauthorizedError } = errors;
 
 export type GetJWKS = (data: { kid: string; iss: URL }) => jose.JWTVerifyGetKey;
 
