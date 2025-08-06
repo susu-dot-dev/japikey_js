@@ -1,11 +1,10 @@
-import type { ApiKeyRow, DatabaseDriver } from '@japikey/japikey';
+import type { ApiKeyRow, DatabaseDriver } from '@japikey/shared';
 import {
-  TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS,
   IncorrectUsageError,
   DatabaseError,
-  toSqlite,
-  fromSqlite,
-} from '@japikey/japikey';
+  InvalidInputError,
+  TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS,
+} from '@japikey/shared';
 import type {
   D1Database,
   D1PreparedStatement,
@@ -18,6 +17,38 @@ type Queries = {
   find: D1PreparedStatement;
   revoke: D1PreparedStatement;
 };
+
+function toSqlite(apiKey: ApiKeyRow): Record<keyof ApiKeyRow, unknown> {
+  try {
+    return {
+      kid: apiKey.kid,
+      user_id: apiKey.user_id,
+      revoked: apiKey.revoked ? 1 : 0,
+      jwk: JSON.stringify(apiKey.jwk),
+      metadata: JSON.stringify(apiKey.metadata),
+    };
+  } catch (err) {
+    throw new InvalidInputError('Failed to serialize the metadata', {
+      cause: err,
+    });
+  }
+}
+
+function fromSqlite(result: Record<keyof ApiKeyRow, unknown>): ApiKeyRow {
+  try {
+    return {
+      kid: result.kid as string,
+      user_id: result.user_id as string,
+      revoked: result.revoked === 1,
+      jwk: JSON.parse(result.jwk as string),
+      metadata: JSON.parse(result.metadata as string),
+    };
+  } catch (err) {
+    throw new DatabaseError('Failed to deserialize an ApiKeyRow', {
+      cause: err,
+    });
+  }
+}
 
 export default class D1Driver implements DatabaseDriver {
   private _queries?: Queries;
@@ -46,16 +77,14 @@ export default class D1Driver implements DatabaseDriver {
     try {
       this._queries = {
         insert: this.db.prepare(
-          `INSERT INTO ${this.tableName} (kid, user_id, revoked, jwk, metadata) VALUES (:kid, :user_id, :revoked, :jwk, :metadata)`
+          `INSERT INTO ${this.tableName} (kid, user_id, revoked, jwk, metadata) VALUES (?1, ?2, ?3, ?4, ?5)`
         ),
-        get: this.db.prepare(
-          `SELECT * FROM ${this.tableName} WHERE kid = :kid`
-        ),
+        get: this.db.prepare(`SELECT * FROM ${this.tableName} WHERE kid = ?1`),
         find: this.db.prepare(
-          `SELECT * FROM ${this.tableName} WHERE user_id = :user_id LIMIT :limit OFFSET :offset`
+          `SELECT * FROM ${this.tableName} WHERE user_id = ?1 LIMIT ?2 OFFSET ?3`
         ),
         revoke: this.db.prepare(
-          `UPDATE ${this.tableName} SET revoked = 1 WHERE user_id = :user_id AND kid = :kid`
+          `UPDATE ${this.tableName} SET revoked = 1 WHERE user_id = ?1 AND kid = ?2`
         ),
       };
     } catch (err) {
@@ -88,7 +117,15 @@ export default class D1Driver implements DatabaseDriver {
     const params = toSqlite(apiKey);
     const query = this.getQuery('insert');
     try {
-      await query.bind(params).run();
+      await query
+        .bind(
+          params.kid,
+          params.user_id,
+          params.revoked,
+          params.jwk,
+          params.metadata
+        )
+        .run();
     } catch (err) {
       throw new DatabaseError('Failed to insert api key', {
         cause: err,
@@ -100,7 +137,7 @@ export default class D1Driver implements DatabaseDriver {
     let result: Record<string, unknown> | undefined | null;
     const query = this.getQuery('get');
     try {
-      result = await query.bind({ kid }).first();
+      result = await query.bind(kid).first();
     } catch (err) {
       throw new DatabaseError('Failed to query for the api key', {
         cause: err,
@@ -120,13 +157,7 @@ export default class D1Driver implements DatabaseDriver {
     let response: D1Result<Record<string, unknown>>;
     const query = this.getQuery('find');
     try {
-      response = await query
-        .bind({
-          user_id,
-          limit: limit ?? -1,
-          offset: offset ?? 0,
-        })
-        .all();
+      response = await query.bind(user_id, limit ?? -1, offset ?? 0).all();
     } catch (err) {
       throw new DatabaseError('Failed to query for the api keys', {
         cause: err,
@@ -138,7 +169,7 @@ export default class D1Driver implements DatabaseDriver {
   async revokeApiKey(filter: { user_id: string; kid: string }): Promise<void> {
     const query = this.getQuery('revoke');
     try {
-      await query.bind(filter).run();
+      await query.bind(filter.user_id, filter.kid).run();
     } catch (err) {
       throw new DatabaseError('Failed to revoke the api key', {
         cause: err,

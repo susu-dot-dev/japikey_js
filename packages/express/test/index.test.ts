@@ -12,16 +12,13 @@ import { v4 as uuidv4 } from 'uuid';
 import * as jose from 'jose';
 import request from 'supertest';
 import express from 'express';
-import {
-  SqliteDriver,
-  createApiKey,
-  type DatabaseDriver,
-} from '@japikey/japikey';
+import { createApiKey, type DatabaseDriver } from '@japikey/japikey';
 import {
   apiKeyOptions,
   baseIssuer,
   userClaims,
 } from '../../japikey/test/testHelpers.ts';
+import SqliteDriver from '../../sqlite/src/index.ts';
 import {
   createApiKeyRouter,
   createJWKSRouter,

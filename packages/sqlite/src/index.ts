@@ -1,14 +1,14 @@
-import type { ApiKeyRow, DatabaseDriver } from './interface.ts';
-import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from './interface.ts';
+import type { ApiKeyRow, DatabaseDriver } from '@japikey/shared';
 import {
   IncorrectUsageError,
   InvalidInputError,
   DatabaseError,
+  TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS,
 } from '@japikey/shared';
 import type { StatementSync, SQLInputValue, SQLOutputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
 
-export function toSqlite(apiKey: ApiKeyRow): Record<string, SQLInputValue> {
+function toSqlite(apiKey: ApiKeyRow): Record<string, SQLInputValue> {
   try {
     return {
       kid: apiKey.kid,
@@ -24,7 +24,7 @@ export function toSqlite(apiKey: ApiKeyRow): Record<string, SQLInputValue> {
   }
 }
 
-export function fromSqlite(result: Record<string, SQLOutputValue>): ApiKeyRow {
+function fromSqlite(result: Record<string, SQLOutputValue>): ApiKeyRow {
   try {
     return {
       kid: result.kid as string,

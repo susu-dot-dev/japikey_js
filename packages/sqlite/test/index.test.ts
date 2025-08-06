@@ -9,12 +9,11 @@ import {
 } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import type * as jose from 'jose';
-import type { DatabaseDriver } from '../src/database/interface.ts';
-import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from '../src/database/interface.ts';
-import SqliteDriver from '../src/database/sqlite.ts';
-import { createApiKey } from '../src/sign.ts';
-import { apiKeyOptions, userClaims } from './testHelpers.ts';
-import type { ApiKeyRow } from '../src/database/interface.ts';
+import type { DatabaseDriver, ApiKeyRow } from '@japikey/shared';
+import { TRUNCATE_TABLE_ONLY_USE_FOR_UNIT_TESTS } from '@japikey/shared';
+import SqliteDriver from '../src/index.ts';
+import { createApiKey } from '../../japikey/src/sign.ts';
+import { apiKeyOptions, userClaims } from '../../japikey/test/testHelpers.ts';
 import {
   DatabaseError,
   IncorrectUsageError,

@@ -23,18 +23,14 @@ import {
   type CreateApiKeyRouterOptions,
 } from '../src/router.ts';
 
-import {
-  createApiKey,
-  SqliteDriver,
-  DatabaseDriver,
-  errorType,
-} from '@japikey/japikey';
+import { createApiKey, DatabaseDriver, errorType } from '@japikey/japikey';
 import {
   baseIssuer,
   userClaims,
   apiKeyOptions,
 } from '../../japikey/test/testHelpers.ts';
 import { appendPathToUrl } from '../../shared/src/util.ts';
+import SqliteDriver from '../../sqlite/src/index.ts';
 import { UnauthorizedError } from '@japikey/shared';
 
 function castRequest(

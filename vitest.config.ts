@@ -20,6 +20,7 @@ const getProjectConfig = (name: string): TestProjectInlineConfiguration => {
           __dirname,
           './packages/authenticate/src/index.ts'
         ),
+        '@japikey/sqlite': resolve(__dirname, './packages/sqlite/src/index.ts'),
       },
     },
   };
@@ -38,6 +39,7 @@ export default defineConfig({
       getProjectConfig('authenticate'),
       getProjectConfig('express'),
       getProjectConfig('cloudflare'),
+      getProjectConfig('sqlite'),
     ],
     coverage: {
       provider: 'v8',
