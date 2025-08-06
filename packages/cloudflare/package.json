@@ -1,5 +1,5 @@
 {
-  "name": "@japikeys/cloudflare",
+  "name": "@japikey/cloudflare",
   "version": "0.1.0",
   "description": "Cloudflare integration utilities for JAPIKey",
   "engines": {
