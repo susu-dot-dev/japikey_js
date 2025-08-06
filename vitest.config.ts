@@ -45,6 +45,7 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/coverage/',
+        '**/d1.ts', // Requires an actual D1 database to test properly, out of scope for now
       ],
       thresholds: {
         branches: 100,
