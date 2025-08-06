@@ -19,7 +19,7 @@ export type CreateApiKeyRouterOptions<Env> = {
   ) => Promise<CreateApiKeyData>;
   issuer: URL;
   aud: string;
-  getDb: (env: Env) => DatabaseDriver;
+  db: DatabaseDriver;
   routePrefix: string;
 };
 
@@ -95,7 +95,7 @@ function getWellKnownKid(request: Request, baseIssuer: URL): string {
 
 export function createJWKSRouter<Env>(
   baseIssuer: URL,
-  getDb: (env: Env) => DatabaseDriver
+  db: DatabaseDriver
 ): ExportedHandler<Env> {
   return {
     fetch: wrapError(async function fetch(
@@ -103,7 +103,6 @@ export function createJWKSRouter<Env>(
       env: Env
     ): Promise<Response> {
       const kid = getWellKnownKid(request, baseIssuer);
-      const db = getDb(env);
       return handleJWKSRequest(kid, db);
     }),
   };
@@ -176,8 +175,7 @@ async function handleCreateApiKeyRequest<Env>(
     expiresAt,
   });
   const kid = jwk.kid as string;
-  const db = options.getDb(env);
-  await db.insertApiKey({
+  await options.db.insertApiKey({
     kid,
     user_id: userId,
     revoked: false,
@@ -197,8 +195,7 @@ async function handleListApiKeysRequest<Env>(
   options: CreateApiKeyRouterOptions<Env>
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
-  const db = options.getDb(env);
-  const apiKeys = await db.findApiKeys(userId);
+  const apiKeys = await options.db.findApiKeys(userId);
   return new Response(JSON.stringify(apiKeys), {
     headers: {
       'Content-Type': 'application/json',
@@ -213,8 +210,7 @@ async function handleGetApiKeyRequest<Env>(
   keyId: string
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
-  const db = options.getDb(env);
-  const apiKey = await db.getApiKey(keyId);
+  const apiKey = await options.db.getApiKey(keyId);
   if (!apiKey || apiKey.user_id !== userId) {
     throw new NotFoundError('API key not found');
   }
@@ -232,12 +228,11 @@ async function handleRevokeApiKeyRequest<Env>(
   keyId: string
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
-  const db = options.getDb(env);
-  const apiKey = await db.getApiKey(keyId);
+  const apiKey = await options.db.getApiKey(keyId);
   if (!apiKey || apiKey.user_id !== userId) {
     throw new NotFoundError('API key not found');
   }
-  await db.revokeApiKey({ user_id: userId, kid: keyId });
+  await options.db.revokeApiKey({ user_id: userId, kid: keyId });
   return new Response(JSON.stringify({}), {
     headers: {
       'Content-Type': 'application/json',

@@ -49,7 +49,6 @@ function castRequest(
 describe('createJWKSRouter', () => {
   let db: DatabaseDriver;
   let app: ExportedHandler;
-  let getDb: Mock;
   const ctx: ExecutionContext = {
     waitUntil: vi.fn(),
     passThroughOnException: vi.fn(),
@@ -57,16 +56,11 @@ describe('createJWKSRouter', () => {
   };
   beforeAll(async () => {
     db = new SqliteDriver(':memory:');
-    getDb = vi.fn();
     await db.ensureTable();
-    app = createJWKSRouter(baseIssuer, getDb);
+    app = createJWKSRouter(baseIssuer, db);
   });
   afterAll(async () => {
     await db.close();
-  });
-  beforeEach(() => {
-    getDb.mockClear();
-    getDb.mockReturnValue(db);
   });
 
   test('returns the JWKS for a valid kid', async () => {
@@ -197,27 +191,10 @@ describe('createJWKSRouter', () => {
       },
     });
   });
-
-  test('throws an error if a non-japikey error is thrown', async () => {
-    getDb.mockImplementation(() => {
-      throw new Error('not a japikey error');
-    });
-    const promise = app.fetch!(
-      castRequest(
-        new Request(
-          appendPathToUrl(baseIssuer, `${uuidv4()}/.well-known/jwks.json`)
-        )
-      ),
-      {},
-      ctx
-    );
-    await expect(promise).rejects.toThrow('not a japikey error');
-  });
 });
 
 describe('createApiKeyRouter', () => {
   let db: DatabaseDriver;
-  let getDb: Mock;
   let getUserId: Mock;
   let parseCreateApiKeyRequest: Mock;
   let userId: string;
@@ -237,11 +214,8 @@ describe('createApiKeyRouter', () => {
   });
 
   beforeEach(() => {
-    getDb = vi.fn();
     getUserId = vi.fn();
     parseCreateApiKeyRequest = vi.fn();
-
-    getDb.mockReturnValue(db);
 
     getUserId.mockReset();
     userId = uuidv4();
@@ -273,7 +247,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -339,7 +313,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -403,7 +377,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -432,7 +406,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -483,7 +457,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -570,7 +544,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -597,7 +571,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -641,7 +615,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -692,7 +666,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -726,7 +700,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -760,7 +734,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -816,7 +790,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -860,7 +834,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -904,7 +878,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -936,7 +910,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -968,7 +942,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -1006,7 +980,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 
@@ -1033,7 +1007,7 @@ describe('createApiKeyRouter', () => {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
         aud: 'api-key',
-        getDb,
+        db,
         routePrefix,
       };
 

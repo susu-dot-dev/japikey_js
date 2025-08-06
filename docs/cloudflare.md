@@ -79,7 +79,7 @@ export default {
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com/'),
         aud: 'api-key',
-        getDb: env => new D1Driver(env.DB),
+        db,
         routePrefix: '/api-keys',
       };
 
