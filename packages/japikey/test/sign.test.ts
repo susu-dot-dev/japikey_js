@@ -1,8 +1,9 @@
 import { describe, test, expect, Mock } from 'vitest';
 import * as jose from 'jose';
 import { createApiKey } from '../src/sign.ts';
-import { VER, ALG } from '@japikey/shared';
 import {
+  VER,
+  ALG,
   IncorrectUsageError,
   SigningError,
   UnknownError,

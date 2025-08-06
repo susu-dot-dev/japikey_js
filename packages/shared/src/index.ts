@@ -1,5 +1,17 @@
 import { appendPathToUrl } from './util.ts';
-export * from './errors.ts';
+export {
+  JapikeyError,
+  InvalidInputError,
+  MalformedTokenError,
+  UnauthorizedError,
+  NotFoundError,
+  UnexpectedError,
+  UnknownError,
+  SigningError,
+  IncorrectUsageError,
+  DatabaseError,
+  errorType,
+} from './errors.ts';
 
 export const ALG = 'RS256';
 export const VER_PREFIX = 'japikey-v';

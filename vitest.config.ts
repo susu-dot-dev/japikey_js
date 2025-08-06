@@ -33,6 +33,7 @@ export default defineConfig({
       getProjectConfig('shared'),
       getProjectConfig('authenticate'),
       getProjectConfig('express'),
+      getProjectConfig('cloudflare'),
     ],
     coverage: {
       provider: 'v8',

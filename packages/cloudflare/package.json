@@ -1,0 +1,60 @@
+{
+  "name": "@japikeys/cloudflare",
+  "version": "0.1.0",
+  "description": "Cloudflare integration utilities for JAPIKey",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "japikey",
+    "integration"
+  ],
+  "homepage": "https://github.com/susu-dot-dev/japikey_js#readme",
+  "bugs": {
+    "url": "https://github.com/susu-dot-dev/japikey_js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susu-dot-dev/japikey_js.git"
+  },
+  "license": "MIT",
+  "author": "Anil Kulkarni",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc",
+    "lint": "eslint --flag v10_config_lookup_from_file .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts"
+  },
+  "dependencies": {
+    "@japikey/japikey": "0.1.0",
+    "path-to-regexp": "^8.2.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250806.0",
+    "@types/node": "^24.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^14.0.0",
+    "jose": "^6.0.12",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
+    "vitest": "^3.2.4"
+  }
+}

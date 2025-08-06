@@ -1,8 +1,12 @@
 import type { Request, NextFunction, Response } from 'express';
 import { Router } from 'express';
-import type { JSONWebKeySet } from 'jose';
-import { JapikeyError, NotFoundError } from '@japikey/shared';
-import { createApiKey, type DatabaseDriver } from '@japikey/japikey';
+import {
+  createApiKey,
+  JapikeyError,
+  NotFoundError,
+  type DatabaseDriver,
+  type JSONWebKeySet,
+} from '@japikey/japikey';
 
 function errorHandler(
   err: Error,
