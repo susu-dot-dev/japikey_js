@@ -19,6 +19,7 @@ import * as jose from 'jose';
 import {
   createJWKSRouter,
   createApiKeyRouter,
+  isJWKSPath,
   type CreateApiKeyRouterOptions,
 } from '../src/router.ts';
 
@@ -1050,4 +1051,100 @@ describe('createApiKeyRouter', () => {
       expect(response.status).toBe(404);
     }
   );
+});
+
+describe('isJWKSPath', () => {
+  const baseIssuer = new URL('https://example.com');
+
+  test('returns true for valid JWKS path with UUID', () => {
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(true);
+  });
+
+  test('returns false for valid JWKS path with trailing slash', () => {
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json/'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for invalid UUID', () => {
+    const request = new Request(
+      'https://example.com/not-a-uuid/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for wrong path structure', () => {
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/wrong-path/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for wrong issuer', () => {
+    const request = new Request(
+      'https://different.com/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for missing .well-known', () => {
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for wrong filename', () => {
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/.well-known/keys.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for extra path segments', () => {
+    const request = new Request(
+      'https://example.com/extra/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for empty kid', () => {
+    const request = new Request('https://example.com//.well-known/jwks.json');
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for non-JWKS path', () => {
+    const request = new Request('https://example.com/api/users');
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for root path', () => {
+    const request = new Request('https://example.com/');
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns false for empty path', () => {
+    const request = new Request('https://example.com');
+    expect(isJWKSPath(request, baseIssuer)).toBe(false);
+  });
+
+  test('returns true for valid JWKS path with different base issuer', () => {
+    const customIssuer = new URL('https://api.custom.com');
+    const request = new Request(
+      'https://api.custom.com/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, customIssuer)).toBe(true);
+  });
+
+  test('returns false for valid JWKS path with wrong base issuer', () => {
+    const customIssuer = new URL('https://api.custom.com');
+    const request = new Request(
+      'https://example.com/123e4567-e89b-12d3-a456-426614174000/.well-known/jwks.json'
+    );
+    expect(isJWKSPath(request, customIssuer)).toBe(false);
+  });
 });

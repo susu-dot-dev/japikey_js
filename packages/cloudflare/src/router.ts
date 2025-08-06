@@ -109,6 +109,15 @@ export function createJWKSRouter<Env>(
   };
 }
 
+export function isJWKSPath(request: Request, baseIssuer: URL): boolean {
+  try {
+    getWellKnownKid(request, baseIssuer);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 function matchPath(
   request: Request,
   method: string,
