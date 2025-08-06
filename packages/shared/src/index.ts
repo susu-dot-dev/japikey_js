@@ -13,6 +13,8 @@ export {
   errorType,
 } from './errors.ts';
 
+export * from './database.ts';
+
 export const ALG = 'RS256';
 export const VER_PREFIX = 'japikey-v';
 export const VER_NUM = 1;

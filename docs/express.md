@@ -11,6 +11,7 @@ Have an existing express() application, that has some other mechanism for authen
 ```bash
 npm install --save "@japikey/japikey"
 npm install --save "@japikey/express"
+npm install --save "@japikey/sqlite"
 ```
 
 # Adding the router
@@ -18,7 +19,8 @@ npm install --save "@japikey/express"
 When you're setting up your app(), you just need to add code like this:
 
 ```ts
-import { SqliteDriver, UnauthorizedError } from '@japikey/japikey';
+import { UnauthorizedError } from '@japikey/japikey';
+import SqliteDriver from '@japikey/sqlite';
 import {
   createApiKeyRouter,
   createJWKSRouter,

@@ -9,7 +9,9 @@
       "@japikey/authenticate": ["packages/authenticate/src"],
       "@japikey/authenticate/*": ["packages/authenticate/src/*"],
       "@japikey/express": ["packages/express/src"],
-      "@japikey/express/*": ["packages/express/src/*"]
+      "@japikey/express/*": ["packages/express/src/*"],
+      "@japikey/sqlite": ["packages/sqlite/src"],
+      "@japikey/sqlite/*": ["packages/sqlite/src/*"]
     },
     "esModuleInterop": true,
     "target": "es2024",
