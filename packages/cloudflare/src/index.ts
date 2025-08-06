@@ -1,41 +1,29 @@
 import { NotFoundError, JapikeyError } from '@japikey/shared';
 import type { DatabaseDriver, JSONWebKeySet } from '@japikey/japikey';
 import { validate as validateUuid } from 'uuid';
-import type {
-  ExportedHandler,
-  Request,
-  Response as CloudflareResponse,
-} from '@cloudflare/workers-types';
-
-function castResponse(response: Response): CloudflareResponse {
-  // CloudflareResponse is just a typescript type, not something that you can call
-  // new() on. We need to bridge the existing type in node with the one in cloudflare
-  return response as unknown as CloudflareResponse;
-}
+import type { ExportedHandler } from '@cloudflare/workers-types';
 
 function wrapError<Args extends unknown[]>(
-  fn: (...args: Args) => Promise<CloudflareResponse>
-): (...args: Args) => Promise<CloudflareResponse> {
+  fn: (...args: Args) => Promise<Response>
+): (...args: Args) => Promise<Response> {
   return async (...args: Args) => {
     try {
       return await fn(...args);
     } catch (err) {
       if (err instanceof JapikeyError) {
-        return castResponse(
-          new Response(
-            JSON.stringify({
-              error: {
-                type: err.errorType,
-                message: err.message,
-              },
-            }),
-            {
-              status: err.code,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          )
+        return new Response(
+          JSON.stringify({
+            error: {
+              type: err.errorType,
+              message: err.message,
+            },
+          }),
+          {
+            status: err.code,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
         );
       }
       throw err;
@@ -46,7 +34,7 @@ function wrapError<Args extends unknown[]>(
 async function handleJWKSRequest(
   kid: string,
   db: DatabaseDriver
-): Promise<CloudflareResponse> {
+): Promise<Response> {
   const row = await db.getApiKey(kid);
   if (!row || row.revoked) {
     throw new NotFoundError('API key not found');
@@ -54,13 +42,11 @@ async function handleJWKSRequest(
   const jwks: JSONWebKeySet = {
     keys: [row.jwk],
   };
-  return castResponse(
-    new Response(JSON.stringify(jwks), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-  );
+  return new Response(JSON.stringify(jwks), {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 function getWellKnownKid(request: Request, baseIssuer: URL): string {
@@ -95,7 +81,7 @@ export function createJWKSRouter<Env>(
     fetch: wrapError(async function fetch(
       request: Request,
       env: Env
-    ): Promise<CloudflareResponse> {
+    ): Promise<Response> {
       const kid = getWellKnownKid(request, baseIssuer);
       const db = getDb(env);
       return handleJWKSRequest(kid, db);
