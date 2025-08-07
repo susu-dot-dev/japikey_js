@@ -22,7 +22,10 @@ jobs:
       - name: Publish the authenticate package
         run: cd packages/authenticate && npm publish --provenance --access public
       - name: Publish the japikey package
-        run: cd packages/japikey && npm publish --provenance --access public
+        run: |
+          # Symlinks don't work with npm publish, so we need to copy the file over
+          cp README.md packages/japikey/README.md
+          cd packages/japikey && npm publish --provenance --access public
       - name: Publish the sqlite package
         run: cd packages/sqlite && npm publish --provenance --access public
       - name: Publish the cloudflare package
