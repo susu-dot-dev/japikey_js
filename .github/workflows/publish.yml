@@ -27,5 +27,5 @@ jobs:
         run: cd packages/sqlite && npm publish --provenance --access public
       - name: Publish the cloudflare package
         run: cd packages/cloudflare && npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish the express package
+        run: cd packages/express && npm publish --provenance --access public
