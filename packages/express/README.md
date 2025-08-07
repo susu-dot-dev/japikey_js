@@ -46,7 +46,7 @@ function parseCreateApiKeyRequest(request: Request): Promise<CreateApiKeyData> {
   return {
     expiresAt: new Date(expiresAt),
     claims: { scopes }, // Any claims you want encoded in the token
-    metadata: {}, // Any extra things you want to store in the database
+    databaseMetadata: {}, // Any extra things you want to store in the database
   };
 }
 const db = new SqliteDriver(process.env.SQLITE_PATH);
