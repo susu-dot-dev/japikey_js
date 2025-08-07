@@ -1,6 +1,6 @@
 {
   "name": "@japikey/authenticate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Library to authenticate an API key, in the browser or backend",
   "engines": {
     "node": ">=22.5.0"
@@ -48,7 +48,7 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "dependencies": {
-    "@japikey/shared": "0.1.0"
+    "@japikey/shared": "0.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
