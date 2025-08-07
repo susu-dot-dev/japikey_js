@@ -1,6 +1,7 @@
-# Cloudflare Workers Quickstart
+# @japikey/cloudflare
 
-This quickstart helps you set up a Cloudflare Worker that can be used to create API keys. It works with your existing Cloudflare Workers application and uses D1 for database storage.
+This package generates Cloudflare worker routes and middleware to fully integrate japikeys into your app. You can create api keys, view, or delete them, and validate they are valid.
+This package is part of the larger @japikey ecosystem. See @japikey/japikey for more information.
 
 # Prerequisites
 

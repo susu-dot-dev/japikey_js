@@ -1,6 +1,7 @@
-# Express Quickstart
+# @japikey/express
 
-This quickstart helps you set up an API server that can be used to create API keys. It works with your existing express application
+This package generates express routes and middleware to fully integrate japikeys into your app. You can create api keys, view, or delete them, and validate they are valid.
+This package is part of the larger @japikey ecosystem. See @japikey/japikey for more information.
 
 # Prerequisites
 

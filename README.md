@@ -17,9 +17,48 @@ Interested in learning more? Check out the [How It Works](#how-it-works) section
 
 # Getting Started
 
-For express applications, see the [Express quickstart](./docs/express.md)
+For express applications, see the [Express quickstart](./packages/express/README.md)
 
-For cloudflare workers, see [Cloudflare quickstart](./docs/cloudflare.md)
+For cloudflare workers, see [Cloudflare quickstart](./packages/cloudflare/README.md)
+
+# @japikey ecosystem
+
+The packages (and their dependencies) are split out over several packages for composability and readibility reasons. The current set of packages are as follows:
+
+- @japikey/japikey - Core package for creating an API key
+- @japikey/authenticate - Package for decoding an API key and determining if it is valid (can also be run on the client-side)
+- @japikey/shared - Common interfaces and errors used through the ecosystem
+- @japikey/experss - Express routes that implement the full japikey endpoints
+- @japikey/cloudflare - Cloudflare Worker routes that implement the full japikey endpoints
+- @japikey/sqlite - Sqlite adapter for saving your apikey information in sql
+
+# @japikey/japikey
+
+The @japikey/japikey is the core package in the ecosystem. It contains the main createApiKey function for building an API key. Additionally it re-exports many types from @japikey/shared for convenience. To validate an existing API key, check out the @japikey/authenticate library
+
+Usage:
+
+```
+import { createApiKey } from '@japikey/japikey;
+
+// Add any app-defined data you want to be encoded in the api key
+const claims = {
+    scopes: ["read", "write"],
+}
+
+// Required data
+const options = {
+  sub: 'my-user-id',
+  iss: new URL("https://example.com"),
+  aud: 'api-key,
+  expiresAt: new Date(), // Pick some time in the future for the key to expire
+
+}
+const { jwt, jwks, kid} = await createApiKey(claims, options)
+// The jwt is the api key
+// The jwks needs to be stored & made available to be able to verify the key
+// the kid is the key id encoded within the jwt. This is also needed for verification
+```
 
 # Technology Refresher
 
