@@ -24,7 +24,7 @@ import {
   createApiKeyRouter,
   createJWKSRouter,
   isJWKSPath,
-  type CreateApiKeyRouterOptions,
+  type ApiKeyRouterOptions,
   type CreateApiKeyData,
 } from '@japikey/cloudflare';
 
@@ -75,7 +75,7 @@ export default {
       const db = new D1Driver(env.DB);
       await db.ensureTable();
 
-      const options: CreateApiKeyRouterOptions<Env> = {
+      const options: ApiKeyRouterOptions<Env> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com/'),
@@ -91,7 +91,11 @@ export default {
     // Handle JWKS routes
     const baseIssuer = new URL('https://example.com/');
     if (isJWKSPath(request, baseIssuer)) {
-      const jwksRouter = createJWKSRouter(baseIssuer, db);
+      const jwksRouter = createJWKSRouter({
+        baseIssuer,
+        db,
+        maxAgeSeconds: 300,
+      });
       return jwksRouter.fetch(request, env);
     }
 

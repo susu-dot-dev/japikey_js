@@ -11,7 +11,7 @@ export type CreateApiKeyData = {
   databaseMetadata: Record<string, unknown>;
 };
 
-export type CreateApiKeyRouterOptions<Env> = {
+export type ApiKeyRouterOptions<Env> = {
   getUserId: (request: Request, env: Env) => Promise<string>;
   parseCreateApiKeyRequest: (
     request: Request,
@@ -21,6 +21,12 @@ export type CreateApiKeyRouterOptions<Env> = {
   aud: string;
   db: DatabaseDriver;
   routePrefix: string;
+};
+
+type JwksRouterOptions = {
+  baseIssuer: URL;
+  db: DatabaseDriver;
+  maxAgeSeconds?: number;
 };
 
 function wrapError<Args extends unknown[]>(
@@ -53,19 +59,22 @@ function wrapError<Args extends unknown[]>(
 
 async function handleJWKSRequest(
   kid: string,
-  db: DatabaseDriver
+  options: JwksRouterOptions
 ): Promise<Response> {
-  const row = await db.getApiKey(kid);
+  const row = await options.db.getApiKey(kid);
   if (!row || row.revoked) {
     throw new NotFoundError('API key not found');
   }
   const jwks: JSONWebKeySet = {
     keys: [row.jwk],
   };
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const maxAge = Math.max(options.maxAgeSeconds ?? 0, 0); // Negative values are undefined per mdn - clamp to 0
+  headers['Cache-Control'] = `max-age=${maxAge}`;
   return new Response(JSON.stringify(jwks), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
 }
 
@@ -94,16 +103,15 @@ function getWellKnownKid(request: Request, baseIssuer: URL): string {
 }
 
 export function createJWKSRouter<Env>(
-  baseIssuer: URL,
-  db: DatabaseDriver
+  options: JwksRouterOptions
 ): ExportedHandler<Env> {
   return {
     fetch: wrapError(async function fetch(
       request: Request,
       env: Env
     ): Promise<Response> {
-      const kid = getWellKnownKid(request, baseIssuer);
-      return handleJWKSRequest(kid, db);
+      const kid = getWellKnownKid(request, options.baseIssuer);
+      return handleJWKSRequest(kid, options);
     }),
   };
 }
@@ -163,7 +171,7 @@ function ensureKid(params: Record<string, unknown>): string {
 async function handleCreateApiKeyRequest<Env>(
   request: Request,
   env: Env,
-  options: CreateApiKeyRouterOptions<Env>
+  options: ApiKeyRouterOptions<Env>
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
   const { expiresAt, claims, databaseMetadata } =
@@ -192,7 +200,7 @@ async function handleCreateApiKeyRequest<Env>(
 async function handleListApiKeysRequest<Env>(
   request: Request,
   env: Env,
-  options: CreateApiKeyRouterOptions<Env>
+  options: ApiKeyRouterOptions<Env>
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
   const apiKeys = await options.db.findApiKeys(userId);
@@ -206,7 +214,7 @@ async function handleListApiKeysRequest<Env>(
 async function handleGetApiKeyRequest<Env>(
   request: Request,
   env: Env,
-  options: CreateApiKeyRouterOptions<Env>,
+  options: ApiKeyRouterOptions<Env>,
   keyId: string
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
@@ -224,7 +232,7 @@ async function handleGetApiKeyRequest<Env>(
 async function handleRevokeApiKeyRequest<Env>(
   request: Request,
   env: Env,
-  options: CreateApiKeyRouterOptions<Env>,
+  options: ApiKeyRouterOptions<Env>,
   keyId: string
 ): Promise<Response> {
   const userId = await options.getUserId(request, env);
@@ -241,7 +249,7 @@ async function handleRevokeApiKeyRequest<Env>(
 }
 
 export function createApiKeyRouter<Env>(
-  options: CreateApiKeyRouterOptions<Env>
+  options: ApiKeyRouterOptions<Env>
 ): ExportedHandler<Env> {
   return {
     fetch: wrapError(async function fetch(

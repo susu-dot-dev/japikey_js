@@ -1,4 +1,4 @@
-import type { CreateApiKeyRouterOptions, CreateApiKeyData } from './router.ts';
+import type { ApiKeyRouterOptions, CreateApiKeyData } from './router.ts';
 import { createApiKeyRouter, createJWKSRouter, isJWKSPath } from './router.ts';
 import D1Driver from './d1.ts';
 
@@ -7,6 +7,6 @@ export {
   createJWKSRouter,
   isJWKSPath,
   D1Driver,
-  type CreateApiKeyRouterOptions,
+  type ApiKeyRouterOptions,
   type CreateApiKeyData,
 };
