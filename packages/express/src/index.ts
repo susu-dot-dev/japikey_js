@@ -4,7 +4,6 @@ import {
   createApiKey,
   JapikeyError,
   NotFoundError,
-  UnauthorizedError,
   type DatabaseDriver,
   type JSONWebKeySet,
 } from '@japikey/japikey';
@@ -45,7 +44,7 @@ export type CreateApiKeyData = {
   databaseMetadata: Record<string, unknown>;
 };
 
-export type CreateRouterOptions = {
+export type ApiKeyRouterOptions = {
   getUserId: (request: Request) => Promise<string>;
   parseCreateApiKeyRequest: (request: Request) => Promise<CreateApiKeyData>;
   issuer: URL;
@@ -53,7 +52,12 @@ export type CreateRouterOptions = {
   db: DatabaseDriver;
 };
 
-export function createApiKeyRouter(options: CreateRouterOptions): Router {
+export type JwksRouterOptions = {
+  db: DatabaseDriver;
+  maxAgeSeconds?: number;
+};
+
+export function createApiKeyRouter(options: ApiKeyRouterOptions): Router {
   const router = Router();
   router.post('/', async (request, response) => {
     const userId = await options.getUserId(request);
@@ -106,17 +110,19 @@ export function createApiKeyRouter(options: CreateRouterOptions): Router {
   return router;
 }
 
-export function createJWKSRouter(db: DatabaseDriver): Router {
+export function createJWKSRouter(options: JwksRouterOptions): Router {
   const router = Router();
   router.get('/:kid/.well-known/jwks.json', async (request, response) => {
     const kid = request.params.kid;
-    const row = await db.getApiKey(kid);
+    const row = await options.db.getApiKey(kid);
     if (!row || row.revoked) {
       throw new NotFoundError('API key not found');
     }
     const jwks: JSONWebKeySet = {
       keys: [row.jwk],
     };
+    const maxAge = Math.max(options.maxAgeSeconds ?? 0, 0); // Negative values are undefined per mdn - clamp to 0
+    response.setHeader('Cache-Control', `max-age=${maxAge}`);
     response.json(jwks);
   });
   router.use(errorHandler);

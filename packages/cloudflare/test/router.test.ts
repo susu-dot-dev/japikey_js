@@ -20,7 +20,7 @@ import {
   createJWKSRouter,
   createApiKeyRouter,
   isJWKSPath,
-  type CreateApiKeyRouterOptions,
+  type ApiKeyRouterOptions,
 } from '../src/router.ts';
 
 import { createApiKey, DatabaseDriver, errorType } from '@japikey/japikey';
@@ -53,7 +53,7 @@ describe('createJWKSRouter', () => {
   beforeAll(async () => {
     db = new SqliteDriver(':memory:');
     await db.ensureTable();
-    app = createJWKSRouter(baseIssuer, db);
+    app = createJWKSRouter({ baseIssuer, db, maxAgeSeconds: 300 });
   });
   afterAll(async () => {
     await db.close();
@@ -77,6 +77,50 @@ describe('createJWKSRouter', () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ keys: [jwk] });
+    expect(response.headers.get('Cache-Control')).toBe('max-age=300');
+  });
+
+  test('Returns the JWKS for a valid kid with cache-control of 0 when maxAgeSeconds is not provided', async () => {
+    const app = createJWKSRouter({ baseIssuer, db });
+    const { jwk, kid } = await createApiKey(userClaims(), apiKeyOptions());
+    await db.insertApiKey({
+      user_id: apiKeyOptions().sub,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    const response = await app.fetch!(
+      castRequest(
+        new Request(appendPathToUrl(baseIssuer, `${kid}/.well-known/jwks.json`))
+      ),
+      {},
+      ctx
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ keys: [jwk] });
+    expect(response.headers.get('Cache-Control')).toBe('max-age=0');
+  });
+  test('Returns the JWKS for a valid kid with cache-control of 0 when maxAgeSeconds is negative', async () => {
+    const app = createJWKSRouter({ baseIssuer, db, maxAgeSeconds: -1 });
+    const { jwk, kid } = await createApiKey(userClaims(), apiKeyOptions());
+    await db.insertApiKey({
+      user_id: apiKeyOptions().sub,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    const response = await app.fetch!(
+      castRequest(
+        new Request(appendPathToUrl(baseIssuer, `${kid}/.well-known/jwks.json`))
+      ),
+      {},
+      ctx
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ keys: [jwk] });
+    expect(response.headers.get('Cache-Control')).toBe('max-age=0');
   });
 
   test('returns a 404 for a revoked kid', async () => {
@@ -103,6 +147,7 @@ describe('createJWKSRouter', () => {
         type: errorType.NOT_FOUND,
       },
     });
+    expect(response.headers.get('Cache-Control')).toBeNull();
   });
 
   test('returns a 404 for a non-existent kid', async () => {
@@ -123,6 +168,7 @@ describe('createJWKSRouter', () => {
         type: errorType.NOT_FOUND,
       },
     });
+    expect(response.headers.get('Cache-Control')).toBeNull();
   });
 
   test('returns a 404 for a malformed kid', async () => {
@@ -142,6 +188,7 @@ describe('createJWKSRouter', () => {
         type: errorType.NOT_FOUND,
       },
     });
+    expect(response.headers.get('Cache-Control')).toBeNull();
   });
 
   test('returns a 404 for the wrong subpath', async () => {
@@ -164,6 +211,7 @@ describe('createJWKSRouter', () => {
         type: errorType.NOT_FOUND,
       },
     });
+    expect(response.headers.get('Cache-Control')).toBeNull();
   });
 
   test('returns a 404 for the wrong issuer', async () => {
@@ -186,6 +234,7 @@ describe('createJWKSRouter', () => {
         type: errorType.NOT_FOUND,
       },
     });
+    expect(response.headers.get('Cache-Control')).toBeNull();
   });
 });
 
@@ -238,7 +287,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'creates and gets an api key with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -304,7 +353,7 @@ describe('createApiKeyRouter', () => {
         };
       });
 
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -368,7 +417,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     '/my with no api keys with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -397,7 +446,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     '/my with one api key with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -448,7 +497,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     '/my with two keys, one revoked with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -535,7 +584,7 @@ describe('createApiKeyRouter', () => {
     async ({ routePrefix, normalizedPath }) => {
       getUserId.mockRejectedValue(new UnauthorizedError('auth failed'));
 
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -562,7 +611,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'get :id fails if auth fails with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -606,7 +655,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'get :id fails if the key does not belong to the user with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -657,7 +706,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'get :id fails if the key does not exist with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -691,7 +740,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'get :id fails if the key is not a uuid with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -725,7 +774,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'creates and deletes an api key with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -781,7 +830,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'delete :id fails if not authenticated with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -825,7 +874,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'delete :id fails if the key does not belong to the user with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -869,7 +918,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'delete :id fails if the key does not exist with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -901,7 +950,7 @@ describe('createApiKeyRouter', () => {
       expressError.statusMessage = 'I am a teapot';
       getUserId.mockRejectedValue(expressError);
 
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -933,7 +982,7 @@ describe('createApiKeyRouter', () => {
         new UnauthorizedError('my custom error', { cause: underlying })
       );
 
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -971,7 +1020,7 @@ describe('createApiKeyRouter', () => {
         throw new Error('not a japikey error');
       });
 
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),
@@ -998,7 +1047,7 @@ describe('createApiKeyRouter', () => {
   test.each(routePrefixTestData)(
     'returns a 404 for a non-existent route with routePrefix: $routePrefix',
     async ({ routePrefix, normalizedPath }) => {
-      const options: CreateApiKeyRouterOptions<unknown> = {
+      const options: ApiKeyRouterOptions<unknown> = {
         getUserId,
         parseCreateApiKeyRequest,
         issuer: new URL('https://example.com'),

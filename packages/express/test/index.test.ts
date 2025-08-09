@@ -22,7 +22,8 @@ import SqliteDriver from '../../sqlite/src/index.ts';
 import {
   createApiKeyRouter,
   createJWKSRouter,
-  CreateRouterOptions,
+  ApiKeyRouterOptions,
+  JwksRouterOptions,
   authenticateApiKey,
 } from '../src/index.ts';
 import { Router } from 'express';
@@ -33,7 +34,7 @@ describe('createApiKeyRouter', () => {
   let db: DatabaseDriver;
   let router: Router;
   let app: express.Application;
-  let options: CreateRouterOptions;
+  let options: ApiKeyRouterOptions;
   let getUserId: Mock;
   let parseCreateApiKeyRequest: Mock;
   let userId: string;
@@ -300,7 +301,7 @@ describe('createJWKSRouter', () => {
   beforeAll(async () => {
     db = new SqliteDriver(':memory:');
     await db.ensureTable();
-    router = createJWKSRouter(db);
+    router = createJWKSRouter({ db, maxAgeSeconds: 3600 });
     app = express();
     app.use('/my_issuer/', router);
   });
@@ -322,6 +323,7 @@ describe('createJWKSRouter', () => {
     );
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ keys: [jwk] });
+    expect(response.headers['cache-control']).toBe('max-age=3600');
   });
 
   test('returns a 404 for a revoked kid', async () => {
@@ -345,6 +347,7 @@ describe('createJWKSRouter', () => {
         stack: expect.anything(),
       },
     });
+    expect(response.headers['cache-control']).toBeUndefined();
   });
 
   test('returns a 404 for a non-existent kid', async () => {
@@ -359,6 +362,7 @@ describe('createJWKSRouter', () => {
         stack: expect.anything(),
       },
     });
+    expect(response.headers['cache-control']).toBeUndefined();
   });
 
   test('Handles another middleware that processes errors', async () => {
@@ -368,11 +372,51 @@ describe('createJWKSRouter', () => {
       res.status(418).send("I'm a teapot");
       next();
     });
-    app.use('/', createJWKSRouter(db));
+    app.use('/', createJWKSRouter({ db }));
     const response = await request(app).get(
       '/non-existent-kid/.well-known/jwks.json'
     );
     expect(response.status).toBe(418);
+  });
+
+  test('Returns the JWKS for a valid kid with cache-control of 0 when maxAgeSeconds is not provided', async () => {
+    router = createJWKSRouter({ db });
+    app = express();
+    app.use('/my_issuer/', router);
+    const { jwk, kid } = await createApiKey(userClaims(), apiKeyOptions());
+    await db.insertApiKey({
+      user_id: apiKeyOptions().sub,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    const response = await request(app).get(
+      `/my_issuer/${kid}/.well-known/jwks.json`
+    );
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ keys: [jwk] });
+    expect(response.headers['cache-control']).toBe('max-age=0');
+  });
+
+  test('Clamps negative maxAgeSeconds to 0', async () => {
+    router = createJWKSRouter({ db, maxAgeSeconds: -1 });
+    app = express();
+    app.use('/my_issuer/', router);
+    const { jwk, kid } = await createApiKey(userClaims(), apiKeyOptions());
+    await db.insertApiKey({
+      user_id: apiKeyOptions().sub,
+      revoked: false,
+      metadata: {},
+      jwk,
+      kid,
+    });
+    const response = await request(app).get(
+      `/my_issuer/${kid}/.well-known/jwks.json`
+    );
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ keys: [jwk] });
+    expect(response.headers['cache-control']).toBe('max-age=0');
   });
 });
 
@@ -385,7 +429,7 @@ describe('authenticateMiddleware', () => {
     db = new SqliteDriver(':memory:');
     await db.ensureTable();
 
-    jwksRouter = createJWKSRouter(db);
+    jwksRouter = createJWKSRouter({ db });
     app = express();
     const customFetch: typeof fetch = async (url: string | URL | Request) => {
       const r = new Request(url);
@@ -432,6 +476,7 @@ describe('authenticateMiddleware', () => {
         stack: expect.anything(),
       },
     });
+    expect(response.headers['cache-control']).toBeUndefined();
   });
 
   test('authorizes a valid api key', async () => {

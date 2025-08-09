@@ -25,7 +25,7 @@ import SqliteDriver from '@japikey/sqlite';
 import {
   createApiKeyRouter,
   createJWKSRouter,
-  type CreateRouterOptions,
+  type ApiKeyRouterOptions,
   type CreateApiKeyData,
 } from '@japikey/express';
 const app = express();
@@ -50,7 +50,7 @@ function parseCreateApiKeyRequest(request: Request): Promise<CreateApiKeyData> {
   };
 }
 const db = new SqliteDriver(process.env.SQLITE_PATH);
-const options: CreateRouterOptions = {
+const options: ApiKeyRouterOptions = {
   getUserId,
   parseCreateApiKeyRequest,
   issuer: new URL('https://example.com/'),
@@ -59,7 +59,7 @@ const options: CreateRouterOptions = {
 };
 
 const apiKeyRouter = createApiKeyRouter(options);
-const jwksRouter = createJWKSRouter(db);
+const jwksRouter = createJWKSRouter({ db, maxAgeSeconds: 300 }); // Set the cache-control to invalidate after 5 minutes
 app.use('/api-keys', apiKeyRouter);
 app.use('/', jwksRouter);
 ```
