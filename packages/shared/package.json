@@ -1,6 +1,6 @@
 {
   "name": "@japikey/shared",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Shared utilities for JAPIKey",
   "engines": {
     "node": ">=22.5.0"
