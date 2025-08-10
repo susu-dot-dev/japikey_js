@@ -2,7 +2,12 @@ import { NotFoundError, JapikeyError } from '@japikey/shared';
 import type { DatabaseDriver, JSONWebKeySet } from '@japikey/japikey';
 import { createApiKey } from '@japikey/japikey';
 import { validate as validateUuid } from 'uuid';
-import type { ExportedHandler } from '@cloudflare/workers-types';
+import type {
+  Request as WorkerRequest,
+  Response as WorkerResponse,
+  ExportedHandlerFetchHandler,
+  IncomingRequestCfProperties,
+} from '@cloudflare/workers-types';
 import { pathToRegexp } from 'path-to-regexp';
 
 export type CreateApiKeyData = {
@@ -12,9 +17,12 @@ export type CreateApiKeyData = {
 };
 
 export type ApiKeyRouterOptions<Env> = {
-  getUserId: (request: Request, env: Env) => Promise<string>;
+  getUserId: (
+    request: WorkerRequest<unknown, IncomingRequestCfProperties>,
+    env: Env
+  ) => Promise<string>;
   parseCreateApiKeyRequest: (
-    request: Request,
+    request: WorkerRequest<unknown, IncomingRequestCfProperties>,
     env: Env
   ) => Promise<CreateApiKeyData>;
   issuer: URL;
@@ -29,10 +37,14 @@ export type JwksRouterOptions = {
   maxAgeSeconds?: number;
 };
 
+export type SimpleHandler<Env> = {
+  fetch: ExportedHandlerFetchHandler<Env>;
+};
+
 function wrapError<Args extends unknown[]>(
-  fn: (...args: Args) => Promise<Response>
-): (...args: Args) => Promise<Response> {
-  return async (...args: Args) => {
+  fn: (...args: Args) => Promise<WorkerResponse>
+): (...args: Args) => Promise<WorkerResponse> {
+  return async (...args: Args): Promise<WorkerResponse> => {
     try {
       return await fn(...args);
     } catch (err) {
@@ -60,7 +72,7 @@ function wrapError<Args extends unknown[]>(
 async function handleJWKSRequest(
   kid: string,
   options: JwksRouterOptions
-): Promise<Response> {
+): Promise<WorkerResponse> {
   const row = await options.db.getApiKey(kid);
   if (!row || row.revoked) {
     throw new NotFoundError('API key not found');
@@ -78,7 +90,7 @@ async function handleJWKSRequest(
   });
 }
 
-function getWellKnownKid(request: Request, baseIssuer: URL): string {
+function getWellKnownKid(request: WorkerRequest, baseIssuer: URL): string {
   if (!request.url.startsWith(baseIssuer.toString())) {
     throw new NotFoundError('Invalid JWKS request');
   }
@@ -104,19 +116,21 @@ function getWellKnownKid(request: Request, baseIssuer: URL): string {
 
 export function createJWKSRouter<Env>(
   options: JwksRouterOptions
-): ExportedHandler<Env> {
+): SimpleHandler<Env> {
   return {
-    fetch: wrapError(async function fetch(
-      request: Request,
-      env: Env
-    ): Promise<Response> {
-      const kid = getWellKnownKid(request, options.baseIssuer);
-      return handleJWKSRequest(kid, options);
-    }),
+    fetch: wrapError<Parameters<ExportedHandlerFetchHandler<Env>>>(
+      async function fetch(request: WorkerRequest): Promise<WorkerResponse> {
+        const kid = getWellKnownKid(request, options.baseIssuer);
+        return handleJWKSRequest(kid, options);
+      }
+    ),
   };
 }
 
-export function isJWKSPath(request: Request, baseIssuer: URL): boolean {
+export function isJWKSPath<C>(
+  request: WorkerRequest<unknown, IncomingRequestCfProperties>,
+  baseIssuer: URL
+): boolean {
   try {
     getWellKnownKid(request, baseIssuer);
     return true;
@@ -126,7 +140,7 @@ export function isJWKSPath(request: Request, baseIssuer: URL): boolean {
 }
 
 function matchPath(
-  request: Request,
+  request: WorkerRequest,
   method: string,
   routePrefix: string,
   pattern: string
@@ -169,10 +183,10 @@ function ensureKid(params: Record<string, unknown>): string {
 }
 
 async function handleCreateApiKeyRequest<Env>(
-  request: Request,
+  request: WorkerRequest<unknown, IncomingRequestCfProperties>,
   env: Env,
   options: ApiKeyRouterOptions<Env>
-): Promise<Response> {
+): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const { expiresAt, claims, databaseMetadata } =
     await options.parseCreateApiKeyRequest(request, env);
@@ -198,10 +212,10 @@ async function handleCreateApiKeyRequest<Env>(
 }
 
 async function handleListApiKeysRequest<Env>(
-  request: Request,
+  request: WorkerRequest<unknown, IncomingRequestCfProperties>,
   env: Env,
   options: ApiKeyRouterOptions<Env>
-): Promise<Response> {
+): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const apiKeys = await options.db.findApiKeys(userId);
   return new Response(JSON.stringify(apiKeys), {
@@ -212,11 +226,11 @@ async function handleListApiKeysRequest<Env>(
 }
 
 async function handleGetApiKeyRequest<Env>(
-  request: Request,
+  request: WorkerRequest<unknown, IncomingRequestCfProperties>,
   env: Env,
   options: ApiKeyRouterOptions<Env>,
   keyId: string
-): Promise<Response> {
+): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const apiKey = await options.db.getApiKey(keyId);
   if (!apiKey || apiKey.user_id !== userId) {
@@ -230,11 +244,11 @@ async function handleGetApiKeyRequest<Env>(
 }
 
 async function handleRevokeApiKeyRequest<Env>(
-  request: Request,
+  request: WorkerRequest<unknown, IncomingRequestCfProperties>,
   env: Env,
   options: ApiKeyRouterOptions<Env>,
   keyId: string
-): Promise<Response> {
+): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const apiKey = await options.db.getApiKey(keyId);
   if (!apiKey || apiKey.user_id !== userId) {
@@ -250,39 +264,41 @@ async function handleRevokeApiKeyRequest<Env>(
 
 export function createApiKeyRouter<Env>(
   options: ApiKeyRouterOptions<Env>
-): ExportedHandler<Env> {
+): SimpleHandler<Env> {
   return {
-    fetch: wrapError(async function fetch(
-      request: Request,
-      env: Env
-    ): Promise<Response> {
-      // POST /api-keys - Create API key
-      let matchResult = matchPath(request, 'POST', options.routePrefix, '');
-      if (matchResult.valid) {
-        return handleCreateApiKeyRequest(request, env, options);
-      }
+    fetch: wrapError<Parameters<ExportedHandlerFetchHandler<Env>>>(
+      async function fetch(
+        request: WorkerRequest<unknown, IncomingRequestCfProperties>,
+        env: Env
+      ): Promise<WorkerResponse> {
+        // POST /api-keys - Create API key
+        let matchResult = matchPath(request, 'POST', options.routePrefix, '');
+        if (matchResult.valid) {
+          return handleCreateApiKeyRequest(request, env, options);
+        }
 
-      // GET /api-keys/my - List user's API keys
-      matchResult = matchPath(request, 'GET', options.routePrefix, '/my');
-      if (matchResult.valid) {
-        return handleListApiKeysRequest(request, env, options);
-      }
+        // GET /api-keys/my - List user's API keys
+        matchResult = matchPath(request, 'GET', options.routePrefix, '/my');
+        if (matchResult.valid) {
+          return handleListApiKeysRequest(request, env, options);
+        }
 
-      // GET /api-keys/:id - Get specific API key
-      matchResult = matchPath(request, 'GET', options.routePrefix, '/:id');
-      if (matchResult.valid) {
-        const keyId = ensureKid(matchResult.params);
-        return handleGetApiKeyRequest(request, env, options, keyId);
-      }
+        // GET /api-keys/:id - Get specific API key
+        matchResult = matchPath(request, 'GET', options.routePrefix, '/:id');
+        if (matchResult.valid) {
+          const keyId = ensureKid(matchResult.params);
+          return handleGetApiKeyRequest(request, env, options, keyId);
+        }
 
-      // DELETE /api-keys/:id - Revoke API key
-      matchResult = matchPath(request, 'DELETE', options.routePrefix, '/:id');
-      if (matchResult.valid) {
-        const keyId = ensureKid(matchResult.params);
-        return handleRevokeApiKeyRequest(request, env, options, keyId);
-      }
+        // DELETE /api-keys/:id - Revoke API key
+        matchResult = matchPath(request, 'DELETE', options.routePrefix, '/:id');
+        if (matchResult.valid) {
+          const keyId = ensureKid(matchResult.params);
+          return handleRevokeApiKeyRequest(request, env, options, keyId);
+        }
 
-      throw new NotFoundError('Route not found');
-    }),
+        throw new NotFoundError('Route not found');
+      }
+    ),
   };
 }
