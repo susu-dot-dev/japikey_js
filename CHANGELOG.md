@@ -1,3 +1,15 @@
+# Version 0.3.0
+
+## Breaking Changes
+
+- Updated the CreateJwksRouter to take in an options parameter, rather than just the db
+- Renamed the options for the API router from `CreateApiKeyRouterOptions` to `ApiKeyRouterOptions`
+- Renamed `CreateJwksRouterOptions` to `JwksRouterOptions` for the cloudflare router
+
+## New Features
+
+- Added `maxAgeSeconds` option to JWKS router to set Cache-Control max-age on the .well-known/jwks.json response
+
 # Version 0.2.2
 
 This is a documentation-only patch. The README inside @japikey/japikey is no longer a symlink, to allow it to display in npm during publishing. Additionally, there's one small doc bugfix of metadata-> databaseMetadata

@@ -1,6 +1,6 @@
 {
   "name": "@japikey/japikey",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Library to create API keys powered by JWT and JWKS",
   "engines": {
     "node": ">=22.5.0"
@@ -58,7 +58,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@japikey/shared": "0.2.2",
+    "@japikey/shared": "0.3.0",
     "jose": "^6.0.12",
     "uuid": "^11.1.0"
   }

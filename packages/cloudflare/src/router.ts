@@ -23,7 +23,7 @@ export type ApiKeyRouterOptions<Env> = {
   routePrefix: string;
 };
 
-type JwksRouterOptions = {
+export type JwksRouterOptions = {
   baseIssuer: URL;
   db: DatabaseDriver;
   maxAgeSeconds?: number;
