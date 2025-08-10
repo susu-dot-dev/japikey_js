@@ -1,6 +1,6 @@
 {
   "name": "@japikey/express",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Express endpoints for JAPIKey authentication",
   "engines": {
     "node": ">=22.5.0"
@@ -64,9 +64,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@japikey/japikey": "0.3.0",
-    "@japikey/authenticate": "0.3.0",
-    "@japikey/shared": "0.3.0"
+    "@japikey/japikey": "0.3.1",
+    "@japikey/authenticate": "0.3.1",
+    "@japikey/shared": "0.3.1"
   },
   "peerDependencies": {
     "express": "^5.0.0"

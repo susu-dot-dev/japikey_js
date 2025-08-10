@@ -1,3 +1,10 @@
+# Version 0.3.1
+
+This improves the typescript types for the cloudflare package, for compatibility with types in your worker.
+@cloudflare/workers-types is made into a peerDep so the exact version will match.
+Next, to avoid using global vars (request/response), they are imported directly from cloudflare
+Finally, the generics are properly passed down to the request and response objects
+
 # Version 0.3.0
 
 ## Breaking Changes
