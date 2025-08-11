@@ -42,3 +42,5 @@ done
 echo "Version update complete!"
 echo "All package.json files have been updated to version $NEW_VERSION"
 echo "All @japikey/* dependencies have been updated to exact version $NEW_VERSION" 
+echo "Running npm install to update the lockfile"
+npm install

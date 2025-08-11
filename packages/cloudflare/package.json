@@ -1,6 +1,6 @@
 {
   "name": "@japikey/cloudflare",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Cloudflare worker-based endpoints for japikey",
   "engines": {
     "node": ">=22.5.0"
@@ -44,7 +44,7 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "dependencies": {
-    "@japikey/japikey": "0.3.2",
+    "@japikey/japikey": "0.4.0",
     "path-to-regexp": "^8.2.0"
   },
   "devDependencies": {
