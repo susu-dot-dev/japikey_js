@@ -77,14 +77,14 @@ export default class D1Driver implements DatabaseDriver {
     try {
       this._queries = {
         insert: this.db.prepare(
-          `INSERT INTO ${this.tableName} (kid, user_id, revoked, jwk, metadata) VALUES (?1, ?2, ?3, ?4, ?5)`
+          `INSERT INTO ${this.tableName} (kid, user_id, revoked, jwk, metadata) VALUES (?1, ?2, ?3, ?4, ?5);`
         ),
-        get: this.db.prepare(`SELECT * FROM ${this.tableName} WHERE kid = ?1`),
+        get: this.db.prepare(`SELECT * FROM ${this.tableName} WHERE kid = ?1;`),
         find: this.db.prepare(
-          `SELECT * FROM ${this.tableName} WHERE user_id = ?1 LIMIT ?2 OFFSET ?3`
+          `SELECT * FROM ${this.tableName} WHERE user_id = ?1 LIMIT ?2 OFFSET ?3;`
         ),
         revoke: this.db.prepare(
-          `UPDATE ${this.tableName} SET revoked = 1 WHERE user_id = ?1 AND kid = ?2`
+          `UPDATE ${this.tableName} SET revoked = 1 WHERE user_id = ?1 AND kid = ?2;`
         ),
       };
     } catch (err) {
@@ -96,15 +96,17 @@ export default class D1Driver implements DatabaseDriver {
 
   async ensureTable(): Promise<void> {
     try {
-      await this.db.exec(`
+      await this.db.exec(
+        `
       CREATE TABLE IF NOT EXISTS ${this.tableName} (
         kid TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
         revoked INTEGER NOT NULL,
         jwk TEXT NOT NULL,
         metadata TEXT NOT NULL
-      )
-    `);
+      );
+    `.replaceAll('\n', ' ') // Workaround for https://github.com/cloudflare/workers-sdk/issues/9133
+      );
     } catch (err) {
       throw new DatabaseError('Failed to create the table', {
         cause: err,
