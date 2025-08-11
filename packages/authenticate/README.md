@@ -29,5 +29,5 @@ In addition, you can also use the `shouldAuthenticate` method to determine if th
 ```ts
 import { shouldAuthenticate } from '@japikey/authenticate';
 const issuer = new URL('https://example.com');
-const isJapikey = await shouldAuthenticate(my_auth_token, issuer);
+const isJapikey = shouldAuthenticate(my_auth_token, issuer);
 ```
