@@ -18,55 +18,52 @@ import {
 describe('shouldAuthenticate', () => {
   test('valid token', async () => {
     const { jwt } = await createApiKey(userClaims(), apiKeyOptions());
-    const promise = shouldAuthenticate(jwt, baseIssuer);
-    await expect(promise).resolves.toBe(true);
+    expect(shouldAuthenticate(jwt, baseIssuer)).toBe(true);
   });
 
   test('empty token', async () => {
-    const promise = shouldAuthenticate('', baseIssuer);
-    await expect(promise).resolves.toBe(false);
+    expect(shouldAuthenticate('', baseIssuer)).toBe(false);
   });
 
   test('invalid token', async () => {
-    const promise = shouldAuthenticate('invalid', baseIssuer);
-    await expect(promise).resolves.toBe(false);
+    expect(shouldAuthenticate('invalid', baseIssuer)).toBe(false);
   });
 
   const invalidClaimsTests: {
     claims: Record<string, unknown>;
     baseIssuer?: URL;
   }[] = [
-    { claims: { iss: null } },
-    { claims: { iss: '' } },
-    { claims: { iss: 42 } },
-    {
-      claims: {
-        iss: `https://example.com/sub_path_without_trailing_slash/${uuidv4()}`,
+      { claims: { iss: null } },
+      { claims: { iss: '' } },
+      { claims: { iss: 42 } },
+      {
+        claims: {
+          iss: `https://example.com/sub_path_without_trailing_slash/${uuidv4()}`,
+        },
+        baseIssuer: new URL(
+          'https://example.com/sub_path_without_trailing_slash'
+        ),
       },
-      baseIssuer: new URL(
-        'https://example.com/sub_path_without_trailing_slash'
-      ),
-    },
-    { claims: { iss: `https://susu.dev/${uuidv4()}` } },
-    {
-      claims: { iss: `https://example.com/issuer/not_a_uuid}` },
-      baseIssuer: new URL('https://example.com/issuer'),
-    },
-    { claims: { iss: `https://example.com/${uuidv4()}` } },
-    {
-      claims: { iss: `https://example.com/extra_path/${uuidv4()}` },
-      baseIssuer,
-    },
-    { claims: { ver: null } },
-    { claims: { ver: 42 } },
-    { claims: { ver: '' } },
-    { claims: { ver: 'JAPIKEY-V123' } },
-    { claims: { ver: 'extra-chars-japikey-v1' } },
-    { claims: { ver: 'japikey-v1-extra-suffix' } },
-    { claims: { ver: 'japikey-v1.1' } },
-    { claims: { ver: 'japikey-v1234556' } },
-    { claims: { ver: 'japikey-v99' } },
-  ];
+      { claims: { iss: `https://susu.dev/${uuidv4()}` } },
+      {
+        claims: { iss: `https://example.com/issuer/not_a_uuid}` },
+        baseIssuer: new URL('https://example.com/issuer'),
+      },
+      { claims: { iss: `https://example.com/${uuidv4()}` } },
+      {
+        claims: { iss: `https://example.com/extra_path/${uuidv4()}` },
+        baseIssuer,
+      },
+      { claims: { ver: null } },
+      { claims: { ver: 42 } },
+      { claims: { ver: '' } },
+      { claims: { ver: 'JAPIKEY-V123' } },
+      { claims: { ver: 'extra-chars-japikey-v1' } },
+      { claims: { ver: 'japikey-v1-extra-suffix' } },
+      { claims: { ver: 'japikey-v1.1' } },
+      { claims: { ver: 'japikey-v1234556' } },
+      { claims: { ver: 'japikey-v99' } },
+    ];
   test.each(invalidClaimsTests)('invalid claims %s', async data => {
     const { jwt } = await createApiKey(userClaims(), apiKeyOptions());
     const validClaims = await jose.decodeJwt(jwt);
@@ -79,8 +76,7 @@ describe('shouldAuthenticate', () => {
         alg: ALG,
       })
       .sign(privateKey);
-    const promise = shouldAuthenticate(token, data.baseIssuer ?? baseIssuer);
-    await expect(promise).resolves.toBe(false);
+    expect(shouldAuthenticate(token, data.baseIssuer ?? baseIssuer)).toBe(false);
   });
 });
 

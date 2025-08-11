@@ -143,7 +143,7 @@ export function authenticateApiKey(
       return next();
     }
     const token = authorization.slice('bearer '.length);
-    const isApiKeyAuth = await shouldAuthenticate(token, options.baseIssuer);
+    const isApiKeyAuth = shouldAuthenticate(token, options.baseIssuer);
     if (!isApiKeyAuth) {
       return next();
     }

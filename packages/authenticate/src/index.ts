@@ -66,10 +66,7 @@ function validateVersion(unverified: jose.JWTPayload): number {
   return parsed;
 }
 
-export async function shouldAuthenticate(
-  token: string,
-  baseIssuer: URL
-): Promise<boolean> {
+export function shouldAuthenticate(token: string, baseIssuer: URL): boolean {
   let unverified: jose.JWTPayload;
   let protectedHeader: jose.JoseHeaderParameters;
   try {
