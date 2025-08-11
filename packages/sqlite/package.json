@@ -1,6 +1,6 @@
 {
   "name": "@japikey/sqlite",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "SQLite driver for japikey",
   "engines": {
     "node": ">=22.5.0"
@@ -44,7 +44,7 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "dependencies": {
-    "@japikey/shared": "0.3.1"
+    "@japikey/shared": "0.3.2"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
