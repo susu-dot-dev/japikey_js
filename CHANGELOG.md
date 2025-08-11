@@ -1,3 +1,7 @@
+# Version 0.3.2
+
+Fixes a bug in the d1 driver causing ensureTable() to fail because the statement is multi-line
+
 # Version 0.3.1
 
 This improves the typescript types for the cloudflare package, for compatibility with types in your worker.
