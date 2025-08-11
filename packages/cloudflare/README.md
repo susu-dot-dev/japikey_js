@@ -134,16 +134,15 @@ database_name = "japikey-db"
 database_id = "your-database-id"
 ```
 
-The D1Driver will automatically create the required table when you call `ensureTable()`. The table structure is:
+## Manual Table Creation
 
-```sql
-CREATE TABLE IF NOT EXISTS japikeys (
-  kid TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  revoked INTEGER NOT NULL,
-  jwk TEXT NOT NULL,
-  metadata TEXT NOT NULL
-)
+Cloudflare already supports table migrations. If you want, you can manually create the table
+(see the sql in [d1.ts](./src/d1.ts)). The ensureTable will not make any changes in this case.
+However, you must still call ensureTable() in your code
+
+```ts
+const db = new D1Driver(env.DB);
+await db.ensureTable(); // This call is still necessary, for initializing the prepared statements
 ```
 
 # Validating an API key
