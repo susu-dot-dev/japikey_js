@@ -1,3 +1,13 @@
+# Version 0.4.0
+
+## Breaking Changes
+
+- The return type for `shouldAuthenticate` changed from Promise<boolean> to boolean
+
+## New features
+
+- The update-version.sh bumper script now works for macs, and it runs npm install. It doesn't remember to update the changelog though :)
+
 # Version 0.3.2
 
 Fixes a bug in the d1 driver causing ensureTable() to fail because the statement is multi-line
