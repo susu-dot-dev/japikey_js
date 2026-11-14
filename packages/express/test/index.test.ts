@@ -292,6 +292,26 @@ describe('createApiKeyRouter', () => {
       },
     });
   });
+
+  test('does not leak stack traces in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      const underlying = new Error('bad header');
+      getUserId.mockRejectedValue(
+        new UnauthorizedError('my custom error', { cause: underlying })
+      );
+      const response = await request(app).get('/my');
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        error: {
+          message: 'my custom error',
+          type: errorType.UNAUTHORIZED,
+        },
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });
 
 describe('createJWKSRouter', () => {
