@@ -1,6 +1,6 @@
 {
   "name": "@japikey/express",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Express endpoints for JAPIKey authentication",
   "engines": {
     "node": ">=22.5.0"
@@ -47,7 +47,7 @@
     "format:check": "prettier --check src/**/*.ts"
   },
   "devDependencies": {
-    "@japikey/shared": "0.4.0",
+    "@japikey/shared": "0.4.1",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
     "@types/supertest": "^7.2.1",
@@ -66,8 +66,8 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
-    "@japikey/japikey": "0.4.0",
-    "@japikey/authenticate": "0.4.0"
+    "@japikey/japikey": "0.4.1",
+    "@japikey/authenticate": "0.4.1"
   },
   "peerDependencies": {
     "express": "^5.0.0"

@@ -1,3 +1,9 @@
+# Version 0.4.1
+Update all dependencies to the latest versions. Also the individual packages properly declare which dependencies they require
+
+## Breaking Changes
+- Cloudflare peer type updated to 5.x
+
 # Version 0.4.0
 
 ## Breaking Changes
