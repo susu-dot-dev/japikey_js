@@ -30,20 +30,20 @@
     "test:coverage": "vitest --coverage",
     "clean": "npm run clean --workspaces",
     "build": "./scripts/build.sh",
-    "lint": "eslint --flag v10_config_lookup_from_file .",
-    "lint:fix": "eslint --flag v10_config_lookup_from_file  . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write packages/*/src/**/*.ts",
     "format:check": "prettier --check packages/*/src/**/*.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
-    "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.32.0",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/eslint-plugin": "^8.72.2",
+    "@typescript-eslint/parser": "^8.72.2",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.6.2",
-    "rimraf": "^6.0.1",
-    "vitest": "^3.2.4"
+    "prettier": "^3.10.1",
+    "rimraf": "^6.1.4",
+    "vitest": "^5.1.0"
   }
 }

@@ -126,7 +126,7 @@ describe('createApiKey', () => {
   });
 
   test('signJWT errors are wrapped', async () => {
-    (jose.SignJWT as Mock).mockImplementation(() => {
+    (jose.SignJWT as Mock).mockImplementation(function () {
       throw new Error('SignJWT mock error');
     });
     const promise = createApiKey(userClaims(), apiKeyOptions());

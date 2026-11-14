@@ -233,7 +233,7 @@ async function handleGetApiKeyRequest<Env>(
 ): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const apiKey = await options.db.getApiKey(keyId);
-  if (!apiKey || apiKey.user_id !== userId) {
+  if (apiKey?.user_id !== userId) {
     throw new NotFoundError('API key not found');
   }
   return new Response(JSON.stringify(apiKey), {
@@ -251,7 +251,7 @@ async function handleRevokeApiKeyRequest<Env>(
 ): Promise<WorkerResponse> {
   const userId = await options.getUserId(request, env);
   const apiKey = await options.db.getApiKey(keyId);
-  if (!apiKey || apiKey.user_id !== userId) {
+  if (apiKey?.user_id !== userId) {
     throw new NotFoundError('API key not found');
   }
   await options.db.revokeApiKey({ user_id: userId, kid: keyId });
