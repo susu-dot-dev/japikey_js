@@ -40,3 +40,28 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+  check-dependencies:
+    # Packs each package as it would be published, installs it alone into an
+    # empty ESM project, and imports it. Fails if a package relies on a
+    # dependency that is only available through monorepo hoisting.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspaces
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Check each package declares its dependencies
+        run: ./scripts/check-package-deps.sh
