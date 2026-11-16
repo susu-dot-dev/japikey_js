@@ -1,3 +1,18 @@
+# Unreleased
+
+## Breaking Changes
+
+- New API keys are now signed with ES256 (ECDSA P-256) instead of RS256, and are version 2 (`ver: "japikey-v2"`).
+- The public JWKs of new keys now include `ver: 2` and `alg: "ES256"`. They are stored and served from `.well-known/jwks.json` this way. No database schema change is needed.
+- `authenticate()` now picks the signing algorithm from the token's version (v1 is RS256, v2 is ES256), instead of always requiring RS256.
+- `ver` values of `japikey-v0` are no longer accepted.
+- The shared `ALG` is now `ES256`. A new `ALG_BY_VER` map gives the algorithm of every version.
+
+## Compatibility
+
+- Existing version 1 (RS256) keys keep working, with no changes to their stored JWKs (which have no `ver` or `alg`).
+- Version 1 keys and version 2 keys can be stored in the same table.
+
 # Version 0.4.1
 Update all dependencies to the latest versions. Also the individual packages properly declare which dependencies they require
 

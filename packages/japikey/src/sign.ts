@@ -3,6 +3,7 @@ import { v7 as uuidv7 } from 'uuid';
 import {
   ALG,
   VER,
+  VER_NUM,
   appendPathToUrl,
   JapikeyError,
   IncorrectUsageError,
@@ -67,7 +68,8 @@ async function signJWT(
 
 async function generateJWK(
   publicKey: jose.CryptoKey,
-  kid: string
+  kid: string,
+  alg: string
 ): Promise<jose.JWK> {
   let jwk: jose.JWK;
   try {
@@ -76,6 +78,8 @@ async function generateJWK(
     throw new SigningError('Failed to generate JWK', { cause: err });
   }
   jwk.kid = kid;
+  jwk.alg = alg;
+  (jwk as Record<string, unknown>).ver = VER_NUM;
   return jwk;
 }
 
@@ -90,7 +94,7 @@ export async function createApiKey(
     const sub = getSub(options);
     const aud = options.aud;
     const { publicKey, privateKey } = await generateKeyPair(ALG);
-    const jwk = await generateJWK(publicKey, kid);
+    const jwk = await generateJWK(publicKey, kid, ALG);
 
     const overrides: jose.JWTPayload = { sub, iss, aud, exp };
 

@@ -1,7 +1,7 @@
 import * as jose from 'jose';
 import { validate as uuidValidate } from 'uuid';
 import {
-  ALG,
+  ALG_BY_VER,
   VER_NUM,
   VER_PREFIX,
   appendPathToUrl,
@@ -60,7 +60,7 @@ function validateVersion(unverified: jose.JWTPayload): number {
     throw new MalformedTokenError('Invalid version');
   }
   const parsed = parseInt(match[1], 10); // The regex prevents this from throwing
-  if (parsed > VER_NUM) {
+  if (parsed > VER_NUM || ALG_BY_VER[parsed] === undefined) {
     throw new MalformedTokenError('Invalid version');
   }
   return parsed;
@@ -107,7 +107,10 @@ export async function authenticate(
   } catch (err) {
     throw new MalformedTokenError('Invalid token', { cause: err });
   }
-  validateVersion(unverified);
+  const version = validateVersion(unverified);
+  // The algorithm is dictated by the (signed) version claim, never by the
+  // token's alg header, so an attacker can't pick the algorithm
+  const alg = ALG_BY_VER[version] as string;
   const { issuerKid, iss } = validateIssuer(unverified.iss, options.baseIssuer);
   const kid = validateKid(issuerKid, protectedHeader);
   try {
@@ -116,7 +119,7 @@ export async function authenticate(
       options.getJWKS({ kid, iss: new URL(iss) }),
       {
         ...options.verifyOptions,
-        algorithms: [ALG],
+        algorithms: [alg],
       }
     );
     return payload;
