@@ -82,6 +82,8 @@ describe('Database', () => {
       jwk: jwk,
       metadata: {},
     });
+    // The version and algorithm live in the stored jwk, no extra columns
+    expect(apiKey?.jwk).toMatchObject({ alg: 'ES256', ver: 2, kty: 'EC' });
   });
 
   test.each(driverNames)(

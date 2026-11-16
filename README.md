@@ -101,7 +101,7 @@ This process ensures:
 
 ## JWT
 
-[JWTs](https://www.rfc-editor.org/rfc/rfc7519) are a base64 encoded string with three parts, separated by periods. The three parts are `header`, `payload`, and `signature`. Each part, once base64 decoded, is a JSON object, containing both standardized and user-defined fields. The Header contains information about the type of cryptography used. For our scenario, the JWT's will always be signed with public/private key cryptography, so the `alg` key in the header will be `RS256`.
+[JWTs](https://www.rfc-editor.org/rfc/rfc7519) are a base64 encoded string with three parts, separated by periods. The three parts are `header`, `payload`, and `signature`. Each part, once base64 decoded, is a JSON object, containing both standardized and user-defined fields. The Header contains information about the type of cryptography used. For our scenario, the JWT's will always be signed with public/private key cryptography, so the `alg` key in the header will be `ES256` (ECDSA using P-256 and SHA-256). Keys created by older versions of japikey (version 1) used `RS256`, and continue to verify.
 The payload contains [standard](https://www.rfc-editor.org/rfc/rfc7519#section-4.1) information such as the user id (`sub` field), the expiration time of the token (`exp`), which server issued it (`iss`) and more. Additionally, you can put any other JSON information you want in this part. Lastly, the signature part is the cryptography digest of the first two pieces, and then base64 encoded
 
 In practice, we can use the header to confirm the type of cryptography used, and then use the digest to ensure the message has been signed by the server and not tampered with.
@@ -125,8 +125,8 @@ Now that we have a good understanding of the core technologies, we can talk abou
 
 Then, the following claims are added to the JWT:
 
-- header: `{"alg": "RS256", "kid":"key-123"}`
-- claims: `{"sub": "user-id-123", "iss": "https://mydomain/jwks/key-123", "exp": someDateInTheFuture...}`
+- header: `{"alg": "ES256", "kid":"key-123"}`
+- claims: `{"sub": "user-id-123", "iss": "https://mydomain/jwks/key-123", "exp": someDateInTheFuture, "ver": "japikey-v2"...}`
 
 and then the JWT is signed with the private key. Following signing, the private key is discarded, **never to be saved or used again**. This way, once generated, nobody, not even the server can modify the API key. An attacker also can't use the private key to change any of the claims because it no longer exists.
 
@@ -142,7 +142,7 @@ graph TD
     F --> H[Payload]
     F --> I[Signature]
 
-    G --> J[alg: RS256]
+    G --> J[alg: ES256]
     G --> K[kid: key-123]
 
     H --> L[sub: user-id-123]

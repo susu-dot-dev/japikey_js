@@ -36,6 +36,11 @@ describe('createApiKey', () => {
     };
     expect(payload).toEqual(expected);
     expect(protectedHeader.alg).toBe(ALG);
+    expect(ALG).toBe('ES256');
+    expect(jwk.alg).toBe('ES256');
+    expect(jwk.kty).toBe('EC');
+    expect(jwk.crv).toBe('P-256');
+    expect(jwk).not.toHaveProperty('d');
     expect(protectedHeader.kid).toBe(jwk.kid);
   });
 

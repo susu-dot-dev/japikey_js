@@ -343,6 +343,7 @@ describe('createJWKSRouter', () => {
     );
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ keys: [jwk] });
+    expect(response.body.keys[0]).toMatchObject({ alg: 'ES256', ver: 2 });
     expect(response.headers['cache-control']).toBe('max-age=3600');
   });
 
